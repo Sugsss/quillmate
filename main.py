@@ -1,9 +1,7 @@
 """
-小红书AI内容管理系统 — 主入口
-融合三个 GitHub 项目的精华：
-- xhs_content_agent 的分层架构
-- xhs-ai-writer 的双专家 prompt
-- XHSSpec 的品牌人设思路
+QuillMate — 小红书AI内容管理系统
+融合 GitHub 最佳实践: huashu-skills / xhs-ai-writer / xhs_content_agent /
+XHSSpec / Spider_XHS / vault-curate / obsidianRAGsody
 """
 from contextlib import asynccontextmanager
 
