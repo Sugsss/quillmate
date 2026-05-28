@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>评论管理 - 小红书AI内容管理系统</title>
+<style>
+:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.08); --green: #38a169; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:18px; text-align:center; }
+.header h1 { font-size:18px; }
+.nav { display:flex; gap:6px; justify-content:center; padding:10px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:5px 12px; border-radius:14px; font-size:12px; border:1px solid var(--border); }
+.nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.container { max-width:900px; margin:0 auto; padding:20px 16px; }
+.card { background:var(--card); border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:var(--shadow); }
+.btn { padding:8px 18px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-outline { background:none; border:1px solid #ddd; color:#666; }
+.btn-sm { padding:4px 10px; font-size:11px; border-radius:5px; }
+select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; min-width:200px; }
+.comment-item { border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; }
+.comment-author { font-weight:600; font-size:13px; margin-bottom:4px; }
+.comment-content { font-size:14px; margin-bottom:8px; line-height:1.6; }
+.comment-reply { background:#f0fdf4; border-radius:8px; padding:10px; font-size:13px; margin-top:8px; }
+.comment-reply .label { font-size:10px; color:var(--green); font-weight:600; margin-bottom:4px; }
+.reply-actions { display:flex; gap:6px; margin-top:8px; }
+.badge { display:inline-block; padding:2px 8px; border-radius:3px; font-size:10px; font-weight:600; }
+.badge-pending { background:#fef3c7; color:#92400e; }
+.badge-replied { background:#e8fde8; color:#38a169; }
+.badge-ignored { background:#f5f5f5; color:#999; }
+.empty { text-align:center; padding:30px; color:#999; font-size:13px; }
+.loading { text-align:center; padding:30px; color:#999; }
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:13px; z-index:200; opacity:0; transition:opacity .3s; pointer-events:none; }
+.toast.show { opacity:1; }
+.add-form { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
+.add-form input { padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; }
+.add-form input:focus { outline:none; border-color:var(--primary); }
+</style>
+</head>
+<body>
+<div class="header"><h1>💬 评论管理</h1></div>
+<div class="nav">
+    <a href="/">🏠 首页</a>
+    <a href="/materials/page">📚 素材库</a>
+    <a href="/brand/page">👤 人设</a>
+    <a href="/topics/page">💡 选题</a>
+    <a href="/contents/page">✍️ 生成</a>
+    <a href="/publishes/page">📤 发布</a>
+    <a href="/comments/page" class="active">💬 评论</a>
+    <a href="/analytics/page">📊 看板</a>
+    <a href="/xhs/page">🔗 XHS</a>
+    <a href="/obsidian/page">💎 Obsidian</a>
+</div>
+<div class="container">
+    <!-- 筛选 -->
+    <div class="card">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <select id="publishFilter" onchange="loadComments()">
+                <option value="">全部发布内容</option>
+            </select>
+            <select id="statusFilter" onchange="loadComments()">
+                <option value="">全部状态</option>
+                <option value="pending">待回复</option>
+                <option value="replied">已回复</option>
+                <option value="ignored">已忽略</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 手动添加评论 -->
+    <div class="card">
+        <h2 style="font-size:16px;margin-bottom:10px;">➕ 手动添加评论</h2>
+        <div class="add-form">
+            <select id="addPublishId" style="padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+                <option value="">选择发布内容</option>
+            </select>
+            <input type="text" id="addAuthor" placeholder="评论者昵称" style="width:120px;">
+            <input type="text" id="addContent" placeholder="评论内容" style="flex:1;min-width:200px;">
+            <button class="btn btn-primary btn-sm" onclick="addComment()">添加</button>
+        </div>
+    </div>
+
+    <!-- 评论列表 -->
+    <div class="card">
+        <h2 style="font-size:16px;">💬 评论列表 <span style="font-size:12px;color:#999;font-weight:normal;" id="countLabel"></span></h2>
+        <div id="commentList"><div class="loading">加载中...</div></div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+async function init() {
+    // 加载发布列表到筛选器
+    try {
+        const res = await fetch('/publishes/list');
+        const pubs = await res.json();
+        const filter = document.getElementById('publishFilter');
+        const addSel = document.getElementById('addPublishId');
+        for (const p of pubs) {
+            const opt = `<option value="${p.id}">${esc(p.content_title)}</option>`;
+            filter.innerHTML += opt;
+            addSel.innerHTML += opt;
+        }
+    } catch (err) { console.error('加载发布列表失败:', err); }
+    loadComments();
+}
+
+async function loadComments() {
+    const pubId = document.getElementById('publishFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    let url = '/comments/list?';
+    if (pubId) url += `publish_id=${pubId}&`;
+    if (status) url += `status=${status}&`;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        document.getElementById('countLabel').textContent = `(${data.length}条)`;
+        const container = document.getElementById('commentList');
+        if (data.length === 0) {
+            container.innerHTML = '<div class="empty">暂无评论<br>可手动添加评论来模拟测试，或等数据采集Skill自动拉取</div>';
+            return;
+        }
+        let html = '';
+        for (const c of data) {
+            const badgeMap = { pending: 'badge-pending', replied: 'badge-replied', ignored: 'badge-ignored' };
+            const statusMap = { pending: '待回复', replied: '已回复', ignored: '已忽略' };
+            html += `<div class="comment-item">
+                <div class="comment-author">${esc(c.author)} <span class="badge ${badgeMap[c.reply_status]}">${statusMap[c.reply_status]}</span> <span style="font-size:10px;color:#999;">${c.created_at.slice(0,10)}</span></div>
+                <div class="comment-content">${esc(c.content)}</div>
+                ${c.suggested_reply ? `<div class="comment-reply"><div class="label">🤖 AI建议回复</div>${esc(c.suggested_reply)}</div>` : ''}
+                <div class="reply-actions">
+                    ${!c.suggested_reply ? `<button class="btn btn-outline btn-sm" onclick="suggestReply('${c.id}')">🤖 生成回复建议</button>` : ''}
+                    ${c.reply_status === 'pending' ? `<button class="btn btn-outline btn-sm" onclick="markStatus('${c.id}','replied')" style="color:var(--green);">✅ 标记已回复</button>` : ''}
+                    ${c.reply_status === 'pending' ? `<button class="btn btn-outline btn-sm" onclick="markStatus('${c.id}','ignored')">🚫 忽略</button>` : ''}
+                </div>
+            </div>`;
+        }
+        container.innerHTML = html;
+    } catch (err) { document.getElementById('commentList').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+async function suggestReply(commentId) {
+    try {
+        const res = await fetch(`/comments/${commentId}/suggest-reply`, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('AI回复建议已生成');
+            loadComments();
+        }
+    } catch (err) { showToast('生成失败'); }
+}
+
+async function markStatus(commentId, status) {
+    try {
+        await fetch(`/comments/${commentId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status }),
+        });
+        loadComments();
+    } catch (err) { showToast('操作失败'); }
+}
+
+async function addComment() {
+    const pubId = document.getElementById('addPublishId').value;
+    const author = document.getElementById('addAuthor').value.trim() || '匿名用户';
+    const content = document.getElementById('addContent').value.trim();
+    if (!pubId) { showToast('请选择发布内容'); return; }
+    if (!content) { showToast('请输入评论内容'); return; }
+    try {
+        const res = await fetch('/comments/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ publish_id: pubId, author, content }),
+        });
+        if (res.ok) {
+            showToast('评论已添加');
+            document.getElementById('addContent').value = '';
+            loadComments();
+        }
+    } catch (err) { showToast('添加失败'); }
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>发布管理 - 小红书AI内容管理系统</title>
+<style>
+:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.08); --green: #38a169; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:18px; text-align:center; }
+.header h1 { font-size:18px; }
+.nav { display:flex; gap:6px; justify-content:center; padding:10px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:5px 12px; border-radius:14px; font-size:12px; border:1px solid var(--border); }
+.nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.container { max-width:900px; margin:0 auto; padding:20px 16px; }
+.card { background:var(--card); border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:var(--shadow); }
+.btn { padding:8px 18px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-outline { background:none; border:1px solid #ddd; color:#666; }
+.btn-sm { padding:4px 10px; font-size:11px; border-radius:5px; }
+input, textarea { width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; margin-bottom:8px; font-family:inherit; }
+input:focus, textarea:focus { outline:none; border-color:var(--primary); }
+textarea { resize:vertical; min-height:80px; }
+label { display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:#666; }
+.stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.stat-row input { text-align:center; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:8px; border-bottom:2px solid var(--border); color:#666; font-size:11px; }
+td { padding:8px; border-bottom:1px solid #f5f5f5; }
+.badge { display:inline-block; padding:2px 8px; border-radius:3px; font-size:10px; font-weight:600; }
+.badge-pub { background:#e8fde8; color:var(--green); }
+.badge-draft { background:#fef3c7; color:#92400e; }
+.empty { text-align:center; padding:30px; color:#999; font-size:13px; }
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:13px; z-index:200; opacity:0; transition:opacity .3s; pointer-events:none; }
+.toast.show { opacity:1; }
+.copy-area { background:#f9f9f9; border-radius:10px; padding:16px; font-size:14px; line-height:1.9; white-space:pre-wrap; max-height:300px; overflow-y:auto; position:relative; }
+.copy-area .copy-top { position:absolute; top:8px; right:8px; }
+</style>
+</head>
+<body>
+<div class="header"><h1>📤 发布管理</h1></div>
+<div class="nav">
+    <a href="/">🏠 首页</a>
+    <a href="/materials/page">📚 素材库</a>
+    <a href="/brand/page">👤 人设</a>
+    <a href="/topics/page">💡 选题</a>
+    <a href="/contents/page">✍️ 生成</a>
+    <a href="/publishes/page" class="active">📤 发布</a>
+    <a href="/comments/page">💬 评论</a>
+    <a href="/analytics/page">📊 看板</a>
+    <a href="/xhs/page">🔗 XHS</a>
+    <a href="/obsidian/page">💎 Obsidian</a>
+</div>
+<div class="container">
+    <!-- 待发布内容（从URL参数或手动选择） -->
+    <div class="card" id="exportCard" style="display:none;">
+        <h2 style="font-size:16px;">📋 待发布文案</h2>
+        <div class="copy-area" id="exportContent">
+            <button class="btn btn-outline copy-top btn-sm" onclick="copyExport()">📋 复制</button>
+            <div id="exportText"></div>
+        </div>
+        <div style="margin-top:14px;">
+            <label>发布链接（发布后填写）</label>
+            <input type="url" id="publishUrl" placeholder="https://www.xiaohongshu.com/explore/...">
+            <label>发布时间</label>
+            <input type="datetime-local" id="publishTime">
+            <button class="btn btn-primary" style="margin-top:8px;" onclick="confirmPublish()">✅ 确认发布</button>
+            <a href="/xhs/page" class="btn btn-outline" style="margin-top:8px;text-decoration:none;display:inline-block;">🚀 一键发布到小红书</a>
+        </div>
+    </div>
+
+    <!-- 发布列表 -->
+    <div class="card">
+        <h2 style="font-size:16px;">📊 发布记录</h2>
+        <div id="publishList"><div class="empty">加载中...</div></div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const contentId = urlParams.get('content_id');
+let currentExportId = null;
+
+async function init() {
+    if (contentId) await loadExport(contentId);
+    loadPublishes();
+}
+
+async function loadExport(cid) {
+    try {
+        const res = await fetch(`/publishes/export/${cid}`);
+        const data = await res.json();
+        document.getElementById('exportText').textContent = data.copy_text;
+        document.getElementById('exportCard').style.display = 'block';
+        currentExportId = cid;
+        document.getElementById('publishTime').value = new Date().toISOString().slice(0,16);
+    } catch (err) { document.getElementById('exportCard').style.display = 'none'; }
+}
+
+async function copyExport() {
+    const text = document.getElementById('exportText').textContent;
+    try { await navigator.clipboard.writeText(text); showToast('✅ 已复制，去小红书粘贴吧'); }
+    catch { showToast('复制失败，请手动选择'); }
+}
+
+async function confirmPublish() {
+    if (!currentExportId) return;
+    const url = document.getElementById('publishUrl').value.trim();
+    const time = document.getElementById('publishTime').value;
+    try {
+        const res = await fetch('/publishes/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                content_id: currentExportId,
+                publish_url: url,
+                published_at: time ? new Date(time).toISOString() : new Date().toISOString(),
+            }),
+        });
+        if (res.ok) {
+            showToast('✅ 发布记录已保存！');
+            document.getElementById('exportCard').style.display = 'none';
+            loadPublishes();
+        }
+    } catch (err) { showToast('保存失败'); }
+}
+
+async function loadPublishes() {
+    try {
+        const res = await fetch('/publishes/list');
+        const pubs = await res.json();
+        const container = document.getElementById('publishList');
+        if (pubs.length === 0) {
+            container.innerHTML = '<div class="empty">还没有发布记录<br>去「文案生成」页面生成内容后导出到这里</div>';
+            return;
+        }
+        let html = '<table><thead><tr><th>标题</th><th>平台</th><th>状态</th><th>浏览</th><th>点赞</th><th>收藏</th><th>操作</th></tr></thead><tbody>';
+        for (const p of pubs) {
+            const badge = p.status === 'published' ? 'badge-pub' : 'badge-draft';
+            html += `<tr>
+                <td>${esc(p.content_title)}</td>
+                <td>${p.platform}</td>
+                <td><span class="badge ${badge}">${p.status}</span></td>
+                <td>${p.views.toLocaleString()}</td>
+                <td>${p.likes.toLocaleString()}</td>
+                <td>${p.collects.toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-outline btn-sm" onclick="showUpdateStats('${p.id}')">📊 更新数据</button>
+                    ${p.publish_url ? `<a href="${esc(p.publish_url)}" target="_blank" class="btn btn-outline btn-sm" style="text-decoration:none;">🔗</a>` : ''}
+                </td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch (err) { document.getElementById('publishList').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+function showUpdateStats(pubId) {
+    const views = prompt('浏览量:', '0');
+    if (views === null) return;
+    const likes = prompt('点赞数:', '0');
+    if (likes === null) return;
+    const comments = prompt('评论数:', '0');
+    if (comments === null) return;
+    const collects = prompt('收藏数:', '0');
+    if (collects === null) return;
+    updateStats(pubId, parseInt(views), parseInt(likes), parseInt(comments), parseInt(collects));
+}
+
+async function updateStats(pubId, views, likes, comments, collects) {
+    try {
+        await fetch(`/publishes/${pubId}/stats`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ views, likes, comments_count: comments, collects }),
+        });
+        showToast('数据已更新');
+        loadPublishes();
+    } catch (err) { showToast('更新失败'); }
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+
+init();
+</script>
+</body>
+</html>

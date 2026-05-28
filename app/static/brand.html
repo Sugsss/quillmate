@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账号人设 - 小红书AI内容管理系统</title>
+    <style>
+        :root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+        .header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:20px; text-align:center; }
+        .nav { display:flex; gap:8px; justify-content:center; padding:12px; background:#fff; border-bottom:1px solid var(--border); }
+        .nav a { text-decoration:none; color:var(--text); padding:6px 16px; border-radius:16px; font-size:13px; border:1px solid var(--border); }
+        .nav a:hover { background:var(--primary); color:#fff; }
+        .container { max-width:700px; margin:0 auto; padding:24px 16px; }
+        .card { background:var(--card); border-radius:12px; padding:24px; margin-bottom:20px; box-shadow:var(--shadow); }
+        label { display:block; font-weight:600; margin-bottom:6px; font-size:14px; }
+        input, textarea { width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit; margin-bottom:16px; transition:border .2s; }
+        input:focus, textarea:focus { outline:none; border-color:var(--primary); }
+        textarea { resize:vertical; min-height:100px; }
+        .hint { color:#999; font-size:12px; margin-top:-12px; margin-bottom:16px; }
+        .btn-primary { background:var(--primary); color:#fff; padding:10px 28px; border:none; border-radius:8px; font-size:15px; cursor:pointer; width:100%; }
+        .btn-primary:hover { background:#e01e3a; }
+        .saved-msg { text-align:center; color:#38a169; font-size:14px; margin-top:12px; display:none; }
+        .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:13px; z-index:1000; opacity:0; transition:opacity .3s; pointer-events:none; }
+        .toast.show { opacity:1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👤 账号人设配置</h1>
+    </div>
+    <div class="nav">
+        <a href="/">🏠 首页</a>
+        <a href="/materials/page">📚 素材库</a>
+        <a href="/brand/page" class="active">👤 人设</a>
+        <a href="/topics/page">💡 选题</a>
+        <a href="/contents/page">✍️ 生成</a>
+        <a href="/publishes/page">📤 发布</a>
+        <a href="/comments/page">💬 评论</a>
+        <a href="/analytics/page">📊 看板</a>
+    <a href="/xhs/page">🔗 XHS</a>
+    <a href="/obsidian/page">💎 Obsidian</a>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h2>🎯 AI 写文案前会先读这个</h2>
+            <p style="color:#999;font-size:13px;margin-bottom:20px;">
+                这4个字段决定了AI生成内容的「人设」。填得越具体，文案越像你本人写的。
+                借鉴 XHSSpec 的品牌配置思路。
+            </p>
+
+            <label>🧑 我是谁</label>
+            <input type="text" id="identity" placeholder="例：护肤成分党博主，专注平价好物测评">
+            <div class="hint">一句话描述你的账号定位，AI 会围绕这个定位来写</div>
+
+            <label>👥 我的受众</label>
+            <input type="text" id="audience" placeholder="例：25-35岁关注成分的护肤爱好者，预算有限的学生党">
+            <div class="hint">你的目标读者是谁？年龄、兴趣、痛点</div>
+
+            <label>✍️ 写作风格</label>
+            <input type="text" id="tone" placeholder="例：专业但不晦涩，像跟闺蜜聊天，偶尔自嘲">
+            <div class="hint">语气和风格，决定了文案的「味道」</div>
+
+            <label>🚫 禁忌词/话题</label>
+            <textarea id="taboo" placeholder="一行一个，例：&#10;绝对&#10;第一&#10;100%有效&#10;最&#10;政治敏感话题"></textarea>
+            <div class="hint">这些词或话题 AI 会避免使用（小红书广告法合规）</div>
+
+            <button class="btn-primary" onclick="saveProfile()">💾 保存人设</button>
+            <div class="saved-msg" id="savedMsg">✅ 保存成功！</div>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        async function loadProfile() {
+            try {
+                const res = await fetch('/brand/profile');
+                const data = await res.json();
+                if (data.identity) {
+                    document.getElementById('identity').value = data.identity;
+                    document.getElementById('audience').value = data.audience;
+                    document.getElementById('tone').value = data.tone;
+                    document.getElementById('taboo').value = data.taboo;
+                }
+            } catch (err) { /* 加载失败就用空表单 */ }
+        }
+
+        async function saveProfile() {
+            const payload = {
+                identity: document.getElementById('identity').value,
+                audience: document.getElementById('audience').value,
+                tone: document.getElementById('tone').value,
+                taboo: document.getElementById('taboo').value,
+            };
+            // 如果之前有保存过的 id，带上用来更新
+            try {
+                const check = await fetch('/brand/profile');
+                const existing = await check.json();
+                if (existing.id) payload.id = existing.id;
+            } catch (err) { console.error('读取人设失败:', err); }
+
+            try {
+                const res = await fetch('/brand/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('savedMsg').style.display = 'block';
+                    setTimeout(() => document.getElementById('savedMsg').style.display = 'none', 2000);
+                    // 更新隐藏的id用于后续更新
+                }
+            } catch (err) {
+                showToast('❌ 保存失败');
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小红书AI内容管理系统</title>
+<style>
+:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.08); --green: #38a169; --blue: #3182ce; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:28px 20px; text-align:center; }
+.header h1 { font-size:24px; font-weight:700; }
+.header p { opacity:0.85; margin-top:6px; font-size:14px; }
+.nav { display:flex; gap:6px; justify-content:center; padding:12px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:6px 14px; border-radius:16px; font-size:13px; border:1px solid var(--border); transition:all .2s; }
+.nav a:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+.nav a.active { background:var(--primary); color:#fff; }
+.container { max-width:960px; margin:0 auto; padding:24px 16px; }
+
+/* 流程步骤 */
+.flow { display:flex; gap:12px; margin-bottom:28px; flex-wrap:wrap; justify-content:center; }
+.flow-step { flex:1; min-width:100px; max-width:130px; background:var(--card); border-radius:14px; padding:20px 14px; text-align:center; box-shadow:var(--shadow); text-decoration:none; color:var(--text); transition:all .2s; position:relative; }
+.flow-step:hover { transform:translateY(-3px); box-shadow:0 6px 20px rgba(0,0,0,0.12); }
+.flow-step .icon { font-size:32px; margin-bottom:8px; display:block; }
+.flow-step .label { font-size:12px; font-weight:600; }
+.flow-step .arrow { position:absolute; right:-8px; top:50%; transform:translateY(-50%); color:#ccc; font-size:18px; }
+.flow-step:last-child .arrow { display:none; }
+
+/* 概览卡片 */
+.overview { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:14px; margin-bottom:24px; }
+.ov-card { background:var(--card); border-radius:12px; padding:18px; box-shadow:var(--shadow); }
+.ov-card .num { font-size:28px; font-weight:700; }
+.ov-card .num.red { color:var(--primary); }
+.ov-card .num.green { color:var(--green); }
+.ov-card .num.blue { color:var(--blue); }
+.ov-card .lbl { font-size:12px; color:#999; margin-top:4px; }
+
+/* 快捷操作 */
+.quick-actions { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px; margin-bottom:24px; }
+.qa-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:var(--shadow); text-decoration:none; color:var(--text); transition:all .2s; display:flex; align-items:center; gap:14px; }
+.qa-card:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,0.1); }
+.qa-card .qa-icon { font-size:30px; }
+.qa-card .qa-title { font-size:14px; font-weight:600; }
+.qa-card .qa-desc { font-size:11px; color:#999; margin-top:2px; }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>📕 小红书AI内容管理系统</h1>
+    <p>素材库 → AI选题 → 双专家文案生成 → 发布追踪 · 全流程AI驱动</p>
+</div>
+<div class="nav">
+    <a href="/" class="active">🏠 首页</a>
+    <a href="/materials/page">📚 素材库</a>
+    <a href="/brand/page">👤 人设</a>
+    <a href="/topics/page">💡 选题</a>
+    <a href="/contents/page">✍️ 生成</a>
+    <a href="/publishes/page">📤 发布</a>
+    <a href="/comments/page">💬 评论</a>
+    <a href="/analytics/page">📊 看板</a>
+    <a href="/xhs/page">🔗 XHS</a>
+    <a href="/obsidian/page">💎 Obsidian</a>
+</div>
+
+<div class="container">
+    <!-- 工作流程 -->
+    <div class="flow">
+        <a href="/materials/page" class="flow-step">
+            <span class="icon">📚</span><span class="label">① 上传素材</span><span class="arrow">→</span>
+        </a>
+        <a href="/brand/page" class="flow-step">
+            <span class="icon">👤</span><span class="label">② 配置人设</span><span class="arrow">→</span>
+        </a>
+        <a href="/topics/page" class="flow-step">
+            <span class="icon">💡</span><span class="label">③ AI选题</span><span class="arrow">→</span>
+        </a>
+        <a href="/contents/page" class="flow-step">
+            <span class="icon">✍️</span><span class="label">④ 生成文案</span><span class="arrow">→</span>
+        </a>
+        <a href="/publishes/page" class="flow-step">
+            <span class="icon">📤</span><span class="label">⑤ 发布追踪</span><span class="arrow">→</span>
+        </a>
+        <a href="/analytics/page" class="flow-step">
+            <span class="icon">📊</span><span class="label">⑥ 数据分析</span>
+        </a>
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="overview">
+        <div class="ov-card"><div class="num red" id="countMaterials">-</div><div class="lbl">素材总数</div></div>
+        <div class="ov-card"><div class="num red" id="countTopics">-</div><div class="lbl">选题数量</div></div>
+        <div class="ov-card"><div class="num red" id="countContents">-</div><div class="lbl">已生成文案</div></div>
+        <div class="ov-card"><div class="num blue" id="countPublishes">-</div><div class="lbl">发布数量</div></div>
+        <div class="ov-card"><div class="num green" id="countViews">-</div><div class="lbl">总浏览量</div></div>
+    </div>
+
+    <!-- 快捷入口 -->
+    <div class="quick-actions">
+        <a href="/topics/page" class="qa-card">
+            <span class="qa-icon">🤖</span>
+            <div><div class="qa-title">AI推荐选题</div><div class="qa-desc">基于素材库智能推荐今日选题</div></div>
+        </a>
+        <a href="/contents/page" class="qa-card">
+            <span class="qa-icon">🎨</span>
+            <div><div class="qa-title">生成小红书文案</div><div class="qa-desc">双专家引擎，爆款标题+人味正文</div></div>
+        </a>
+        <a href="/publishes/page" class="qa-card">
+            <span class="qa-icon">📋</span>
+            <div><div class="qa-title">导出发布</div><div class="qa-desc">一键复制文案，追踪发布效果</div></div>
+        </a>
+        <a href="/analytics/page" class="qa-card">
+            <span class="qa-icon">📈</span>
+            <div><div class="qa-title">数据看板</div><div class="qa-desc">浏览量/点赞/收藏/互动率总览</div></div>
+        </a>
+    </div>
+</div>
+
+<script>
+async function loadOverview() {
+    try {
+        const [mRes, tRes, aRes] = await Promise.all([
+            fetch('/materials/list'),
+            fetch('/topics/list'),
+            fetch('/analytics/dashboard'),
+        ]);
+        const materials = await mRes.json();
+        const topics = await tRes.json();
+        const analytics = await aRes.json();
+
+        document.getElementById('countMaterials').textContent = materials.length;
+        document.getElementById('countTopics').textContent = topics.length;
+        document.getElementById('countContents').textContent = topics.filter(t => t.status === 'generated').length;
+        document.getElementById('countPublishes').textContent = analytics.total_publishes;
+        document.getElementById('countViews').textContent = analytics.total_views.toLocaleString();
+    } catch (err) { console.error('首页概览加载失败:', err); }
+}
+loadOverview();
+</script>
+</body>
+</html>

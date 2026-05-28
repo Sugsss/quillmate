@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>素材库 - 小红书AI内容管理系统</title>
+<style>
+:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.06); --green: #38a169; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:16px 20px; text-align:center; }
+.header h1 { font-size:18px; font-weight:700; }
+.nav { display:flex; gap:4px; justify-content:center; padding:8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:4px 10px; border-radius:12px; font-size:11px; border:1px solid var(--border); white-space:nowrap; }
+.nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.container { max-width:1000px; margin:0 auto; padding:20px 16px; }
+
+/* 上传区 */
+.upload-card { background:var(--card); border-radius:14px; padding:0; margin-bottom:16px; box-shadow:var(--shadow); overflow:hidden; }
+.upload-zone { border:2px dashed #e0e0e0; border-radius:12px; margin:16px; padding:28px; text-align:center; cursor:pointer; transition:all .2s; position:relative; }
+.upload-zone:hover, .upload-zone.dragover { border-color:var(--primary); background:#fff5f6; }
+.upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.upload-zone .icon { font-size:36px; margin-bottom:6px; }
+.upload-zone .text { font-size:13px; font-weight:600; }
+.upload-zone .hint { font-size:11px; color:#999; margin-top:4px; }
+
+/* 上传队列 */
+.upload-queue { padding:0 16px 16px; }
+.upload-item { display:flex; align-items:center; gap:10px; padding:8px 12px; background:#f9f9f9; border-radius:8px; margin-bottom:6px; font-size:12px; }
+.upload-item .name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.upload-item .status { font-size:11px; white-space:nowrap; }
+.upload-item .status.ok { color:var(--green); }
+.upload-item .status.err { color:var(--primary); }
+.upload-item .bar-wrap { width:80px; height:4px; background:#eee; border-radius:2px; overflow:hidden; }
+.upload-item .bar-fill { height:100%; background:var(--primary); border-radius:2px; transition:width .3s; }
+
+/* 工具栏 */
+.toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+.toolbar input[type=text] { flex:1; min-width:180px; padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; }
+.toolbar input[type=text]:focus { outline:none; border-color:var(--primary); }
+.toolbar select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:12px; }
+.btn { padding:7px 16px; border-radius:8px; border:none; cursor:pointer; font-size:12px; font-weight:600; transition:all .2s; }
+.btn-outline { background:none; border:1px solid #ddd; color:#666; }
+.btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+.btn-danger { background:var(--primary); color:#fff; }
+.btn-danger:hover { background:#d01e38; }
+.btn-sm { padding:4px 10px; font-size:11px; border-radius:5px; }
+.btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+/* 素材卡片网格 */
+.material-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:12px; }
+.material-card { background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow); cursor:pointer; transition:all .15s; border:2px solid transparent; position:relative; }
+.material-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.1); }
+.material-card.selected { border-color:var(--primary); background:#fff5f6; }
+.material-card .check { position:absolute; top:10px; right:10px; width:18px; height:18px; border-radius:50%; border:2px solid #ccc; display:none; align-items:center; justify-content:center; font-size:10px; color:#fff; }
+.material-card.bulk-mode .check { display:flex; }
+.material-card.selected .check { background:var(--primary); border-color:var(--primary); display:flex; }
+.material-card .mtype { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; margin-bottom:8px; }
+.mtype-pdf { background:#fde8e8; color:#c53030; }
+.mtype-md { background:#e8f4fd; color:#2b6cb0; }
+.mtype-txt { background:#e8fde8; color:#276749; }
+.mtype-docx { background:#e8e4fd; color:#553c9a; }
+.material-card .mtitle { font-size:14px; font-weight:700; margin-bottom:6px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.material-card .mpreview { font-size:11px; color:#888; line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:10px; }
+.material-card .mmeta { font-size:10px; color:#bbb; display:flex; gap:12px; }
+
+/* 预览弹窗 */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
+.modal { background:#fff; border-radius:14px; width:100%; max-width:750px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 8px 40px rgba(0,0,0,0.2); }
+.modal-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.modal-header h2 { font-size:16px; }
+.modal-header .close { background:none; border:none; font-size:20px; cursor:pointer; color:#999; padding:4px 8px; }
+.modal-header .close:hover { color:var(--primary); }
+.modal-body { padding:20px; overflow-y:auto; flex:1; font-size:14px; line-height:2; white-space:pre-wrap; }
+.modal-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#999; }
+
+/* 批量工具栏 */
+.bulk-bar { position:sticky; bottom:16px; background:var(--card); border-radius:14px; padding:12px 20px; box-shadow:0 -2px 20px rgba(0,0,0,0.12); display:none; align-items:center; gap:12px; justify-content:center; z-index:100; }
+
+.empty-state { text-align:center; padding:60px 20px; }
+.empty-state .icon { font-size:56px; margin-bottom:12px; }
+.empty-state .text { color:#999; font-size:14px; }
+.empty-state .sub { color:#ccc; font-size:12px; margin-top:4px; }
+
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 22px; border-radius:8px; font-size:13px; z-index:2000; opacity:0; transition:opacity .3s; pointer-events:none; }
+.toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<div class="header"><h1>📚 素材库</h1></div>
+<div class="nav">
+    <a href="/">🏠 首页</a>
+    <a href="/materials/page" class="active">📚 素材库</a>
+    <a href="/brand/page">👤 人设</a>
+    <a href="/topics/page">💡 选题</a>
+    <a href="/contents/page">✍️ 生成</a>
+    <a href="/publishes/page">📤 发布</a>
+    <a href="/comments/page">💬 评论</a>
+    <a href="/analytics/page">📊 看板</a>
+    <a href="/xhs/page">🔗 XHS</a>
+    <a href="/obsidian/page">💎 Obsidian</a>
+</div>
+<div class="container">
+    <!-- 上传区 -->
+    <div class="upload-card">
+        <div class="upload-zone" id="uploadZone">
+            <div class="icon">📁</div>
+            <div class="text">点击上传或拖拽文件到此处</div>
+            <div class="hint">PDF · DOCX · Markdown · TXT ｜ 单文件最大 50MB ｜ 自动解析文本</div>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.md,.txt" multiple>
+        </div>
+        <div class="upload-queue" id="uploadQueue"></div>
+    </div>
+
+    <!-- 工具栏 -->
+    <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="🔍 搜索素材标题或内容..." oninput="renderGrid()">
+        <select id="typeFilter" onchange="renderGrid()">
+            <option value="">全部类型</option>
+            <option value=".pdf">PDF</option>
+            <option value=".docx">DOCX</option>
+            <option value=".md">Markdown</option>
+            <option value=".txt">TXT</option>
+        </select>
+        <button class="btn btn-outline btn-sm" id="btnBulk" onclick="toggleBulk()">☑️ 批量选择</button>
+        <span style="font-size:11px;color:#999;white-space:nowrap;">共 <strong id="countLabel">0</strong> 条</span>
+    </div>
+
+    <!-- 素材卡片 -->
+    <div class="material-grid" id="materialGrid">
+        <div class="empty-state"><div class="icon">📭</div><div class="text">还没有素材</div><div class="sub">上传你的第一个文档开始吧</div></div>
+    </div>
+
+    <!-- 批量操作栏 -->
+    <div class="bulk-bar" id="bulkBar">
+        <span style="font-size:12px;">已选 <strong id="selectedCount">0</strong> 条</span>
+        <button class="btn btn-danger btn-sm" onclick="batchDelete()">🗑 批量删除</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleBulk()">取消</button>
+    </div>
+</div>
+
+<!-- 预览弹窗 -->
+<div class="modal-overlay" id="previewModal" style="display:none;" onclick="if(event.target===this)closePreview()">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="previewTitle"></h2>
+            <button class="close" onclick="closePreview()">✕</button>
+        </div>
+        <div class="modal-body" id="previewBody"></div>
+        <div class="modal-footer">
+            <span id="previewMeta"></span>
+            <button class="btn btn-outline btn-sm" id="previewDelete">🗑 删除</button>
+        </div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let allMaterials = [];
+let selectedIds = new Set();
+let bulkMode = false;
+let previewId = null;
+
+// ── 上传逻辑 ──
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+async function handleFiles(files) {
+    const queue = document.getElementById('uploadQueue');
+    for (const file of files) {
+        const itemId = 'up-' + Math.random().toString(36).slice(2,8);
+        queue.innerHTML += `<div class="upload-item" id="${itemId}">
+            <span class="name">${esc(file.name)}</span>
+            <div class="bar-wrap"><div class="bar-fill" style="width:30%"></div></div>
+            <span class="status">解析中...</span>
+        </div>`;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const res = await fetch('/materials/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            const el = document.getElementById(itemId);
+            if (res.ok) {
+                el.querySelector('.bar-fill').style.width = '100%';
+                el.querySelector('.status').className = 'status ok';
+                el.querySelector('.status').textContent = `✅ ${data.word_count}字`;
+                showToast(`${data.title} 上传成功`);
+            } else {
+                el.querySelector('.status').className = 'status err';
+                el.querySelector('.status').textContent = '❌ ' + (data.detail || '失败');
+            }
+        } catch (err) {
+            document.getElementById(itemId).querySelector('.status').className = 'status err';
+            document.getElementById(itemId).querySelector('.status').textContent = '❌ 网络错误';
+        }
+    }
+    // 清理队列
+    setTimeout(() => { queue.innerHTML = ''; }, 4000);
+    loadMaterials();
+}
+
+// ── 数据加载 ──
+async function loadMaterials() {
+    try {
+        const res = await fetch('/materials/list');
+        allMaterials = await res.json();
+        renderGrid();
+    } catch (err) {
+        document.getElementById('materialGrid').innerHTML = '<div class="empty-state"><div class="text" style="color:#e53e3e;">加载失败</div></div>';
+    }
+}
+
+// ── 渲染卡片 ──
+function renderGrid() {
+    const search = (document.getElementById('searchInput').value || '').toLowerCase();
+    const type = document.getElementById('typeFilter').value;
+
+    let filtered = allMaterials;
+    if (search) {
+        filtered = filtered.filter(m =>
+            m.title.toLowerCase().includes(search) ||
+            (m.preview || '').toLowerCase().includes(search)
+        );
+    }
+    if (type) {
+        filtered = filtered.filter(m => m.file_type === type);
+    }
+
+    document.getElementById('countLabel').textContent = filtered.length;
+    const grid = document.getElementById('materialGrid');
+
+    if (filtered.length === 0) {
+        grid.innerHTML = search || type
+            ? '<div class="empty-state"><div class="icon">🔍</div><div class="text">没有匹配的素材</div></div>'
+            : '<div class="empty-state"><div class="icon">📭</div><div class="text">还没有素材</div><div class="sub">上传你的第一个文档开始吧</div></div>';
+        return;
+    }
+
+    grid.innerHTML = filtered.map(m => {
+        const typeClass = 'mtype-' + (m.file_type === '.pdf' ? 'pdf' : m.file_type === '.md' ? 'md' : m.file_type === '.txt' ? 'txt' : 'docx');
+        const typeName = m.file_type.replace('.', '').toUpperCase();
+        const sel = selectedIds.has(m.id) ? ' selected' : '';
+        const bm = bulkMode ? ' bulk-mode' : '';
+        return `<div class="material-card${sel}${bm}" data-id="${m.id}" onclick="onCardClick(event, '${m.id}')">
+            <div class="check">✓</div>
+            <span class="mtype ${typeClass}">${typeName}</span>
+            <div class="mtitle">${esc(m.title)}</div>
+            <div class="mpreview">${esc(m.preview || '（无预览）')}</div>
+            <div class="mmeta">
+                <span>📝 ${m.word_count.toLocaleString()}字</span>
+                <span>📅 ${m.created_at.slice(0,10)}</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function onCardClick(e, id) {
+    if (bulkMode) {
+        e.stopPropagation();
+        toggleSelect(id);
+        return;
+    }
+    openPreview(id);
+}
+
+function toggleSelect(id) {
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    renderGrid();
+    updateBulkBar();
+}
+
+function toggleBulk() {
+    bulkMode = !bulkMode;
+    if (!bulkMode) selectedIds.clear();
+    document.getElementById('btnBulk').textContent = bulkMode ? '☑️ 取消批量' : '☑️ 批量选择';
+    document.getElementById('btnBulk').style.background = bulkMode ? 'var(--primary)' : '';
+    document.getElementById('btnBulk').style.color = bulkMode ? '#fff' : '';
+    renderGrid();
+    updateBulkBar();
+}
+
+function updateBulkBar() {
+    const bar = document.getElementById('bulkBar');
+    document.getElementById('selectedCount').textContent = selectedIds.size;
+    bar.style.display = bulkMode && selectedIds.size > 0 ? 'flex' : 'none';
+}
+
+async function batchDelete() {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`确定删除选中的 ${selectedIds.size} 条素材吗？文件也会同时删除。`)) return;
+    let count = 0;
+    for (const id of selectedIds) {
+        try { await fetch(`/materials/${id}`, { method: 'DELETE' }); count++; } catch (e) {}
+    }
+    showToast(`已删除 ${count} 条素材`);
+    selectedIds.clear();
+    toggleBulk();
+    loadMaterials();
+}
+
+// ── 预览弹窗 ──
+async function openPreview(id) {
+    try {
+        const res = await fetch(`/materials/${id}`);
+        const data = await res.json();
+        previewId = id;
+        document.getElementById('previewTitle').textContent = data.title;
+        document.getElementById('previewBody').textContent = data.content;
+        document.getElementById('previewMeta').textContent = `${data.file_type} · ${data.word_count.toLocaleString()}字 · ${data.created_at.slice(0,10)}`;
+        document.getElementById('previewDelete').onclick = () => deleteFromPreview();
+        document.getElementById('previewModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    } catch (err) { showToast('加载失败'); }
+}
+
+function closePreview() {
+    document.getElementById('previewModal').style.display = 'none';
+    document.body.style.overflow = '';
+    previewId = null;
+}
+
+async function deleteFromPreview() {
+    if (!previewId) return;
+    if (!confirm('确定删除这条素材吗？')) return;
+    try {
+        await fetch(`/materials/${previewId}`, { method: 'DELETE' });
+        showToast('已删除');
+        closePreview();
+        loadMaterials();
+    } catch (err) { showToast('删除失败'); }
+}
+
+// ── 键盘操作 ──
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePreview();
+});
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+
+loadMaterials();
+</script>
+</body>
+</html>

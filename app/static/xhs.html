@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小红书集成 - AI内容管理系统</title>
+<style>
+:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.06); --green: #38a169; --orange: #dd6b20; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:16px 20px; text-align:center; }
+.header h1 { font-size:18px; }
+.nav { display:flex; gap:4px; justify-content:center; padding:8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:4px 10px; border-radius:12px; font-size:11px; border:1px solid var(--border); white-space:nowrap; }
+.nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.container { max-width:960px; margin:0 auto; padding:20px 16px; }
+.card { background:var(--card); border-radius:14px; padding:20px; margin-bottom:16px; box-shadow:var(--shadow); }
+.btn { padding:8px 18px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:disabled { opacity:0.5; }
+.btn-outline { background:none; border:1px solid #ddd; color:#666; }
+.btn-green { background:var(--green); color:#fff; }
+.btn-sm { padding:5px 12px; font-size:11px; border-radius:5px; }
+.status-badge { display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:600; }
+.status-on { background:#e6ffed; color:var(--green); }
+.status-off { background:#fff3cd; color:var(--orange); }
+.mono { font-family:monospace; font-size:12px; background:#f5f5f5; padding:4px 8px; border-radius:4px; word-break:break-all; }
+input, textarea { width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; font-family:inherit; }
+input:focus, textarea:focus { outline:none; border-color:var(--primary); }
+.result-box { background:#f9f9f9; border-radius:10px; padding:14px; max-height:400px; overflow-y:auto; font-size:12px; line-height:1.6; }
+.note-card { border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px; }
+.note-card .ntitle { font-size:13px; font-weight:600; margin-bottom:4px; }
+.note-card .nstats { font-size:11px; color:#999; }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 22px; border-radius:8px; font-size:13px; z-index:2000; opacity:0; transition:opacity .3s; pointer-events:none; }
+.toast.show { opacity:1; }
+.tabs { display:flex; gap:4px; margin-bottom:16px; }
+.tab { padding:8px 16px; border-radius:8px; font-size:12px; cursor:pointer; border:1px solid var(--border); background:#fff; }
+.tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+</style>
+</head>
+<body>
+<div class="header"><h1>🔗 小红书集成</h1></div>
+<div class="nav">
+    <a href="/">🏠 首页</a>
+    <a href="/materials/page">📚 素材库</a>
+    <a href="/brand/page">👤 人设</a>
+    <a href="/topics/page">💡 选题</a>
+    <a href="/contents/page">✍️ 生成</a>
+    <a href="/publishes/page">📤 发布</a>
+    <a href="/comments/page">💬 评论</a>
+    <a href="/analytics/page">📊 看板</a>
+    <a href="/xhs/page" class="active">🔗 XHS</a>
+    <a href="/obsidian/page">💎 Obsidian</a>
+</div>
+<div class="container">
+    <!-- 状态卡片 -->
+    <div class="card">
+        <h2 style="font-size:15px;margin-bottom:10px;">📡 连接状态</h2>
+        <div id="statusArea"><span class="status-badge status-off">检查中...</span></div>
+        <div id="loginInfo" style="font-size:12px;color:#666;margin-top:8px;"></div>
+    </div>
+
+    <!-- 功能标签页 -->
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('search')">🔍 数据采集</button>
+        <button class="tab" onclick="switchTab('publish')">📤 一键发布</button>
+        <button class="tab" onclick="switchTab('sync')">🔄 数据同步</button>
+    </div>
+
+    <!-- 数据采集 -->
+    <div class="card" id="tab-search">
+        <h2 style="font-size:15px;margin-bottom:10px;">🔍 搜索热门笔记</h2>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="text" id="searchKeyword" placeholder="输入关键词，如：职场沟通" style="flex:1;">
+            <button class="btn btn-primary" onclick="searchNotes()">搜索</button>
+            <button class="btn btn-outline" onclick="trendInsights()">📊 趋势分析</button>
+        </div>
+        <div id="searchResults"><div style="color:#999;font-size:13px;">输入关键词搜索小红书热门笔记，用于选题参考</div></div>
+    </div>
+
+    <!-- 一键发布 -->
+    <div class="card" id="tab-publish" style="display:none;">
+        <h2 style="font-size:15px;margin-bottom:10px;">📤 一键发布到小红书</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <select id="publishContentSelect" style="padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;flex:1;min-width:200px;">
+                <option value="">-- 选择已生成的内容 --</option>
+            </select>
+            <button class="btn btn-green" onclick="publishToXHS()">🚀 一键发布</button>
+        </div>
+        <div id="publishResult" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- 数据同步 -->
+    <div class="card" id="tab-sync" style="display:none;">
+        <h2 style="font-size:15px;margin-bottom:10px;">🔄 数据同步</h2>
+        <p style="font-size:12px;color:#666;margin-bottom:10px;">自动从已发布笔记拉取最新的浏览量、点赞、评论数据</p>
+        <button class="btn btn-primary" onclick="syncAll()">🔄 一键同步全部</button>
+        <div id="syncResult" style="margin-top:10px;"></div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+async function init() {
+    // 检查连接状态
+    try {
+        const res = await fetch('/xhs/status');
+        const data = await res.json();
+        const area = document.getElementById('statusArea');
+        if (data.enabled && data.login_status.logged_in) {
+            area.innerHTML = `<span class="status-badge status-on">✅ 已连接</span>`;
+            document.getElementById('loginInfo').textContent =
+                `账号：${data.login_status.nickname}（${data.login_status.user_id}）`;
+        } else if (data.enabled) {
+            area.innerHTML = `<span class="status-badge status-off">⚠️ Cookie已过期</span>`;
+        } else {
+            area.innerHTML = `<span class="status-badge status-off">❌ 未配置</span>`;
+            document.getElementById('loginInfo').innerHTML =
+                `<details><summary style="cursor:pointer;color:var(--primary);">如何配置？</summary>
+                <div style="margin-top:8px;">${data.setup_guide.replace(/\n/g,'<br>')}</div></details>`;
+        }
+    } catch (err) { document.getElementById('statusArea').innerHTML = '<span class="status-badge status-off">❌ 服务异常</span>'; }
+
+    // 加载内容列表供发布选择
+    try {
+        const res = await fetch('/contents/list');
+        const contents = await res.json();
+        const sel = document.getElementById('publishContentSelect');
+        contents.forEach(c => {
+            sel.innerHTML += `<option value="${c.id}">${esc(c.title)}</option>`;
+        });
+    } catch (err) { console.error('加载内容列表失败:', err); }
+}
+init();
+
+function switchTab(tab) {
+    ['search','publish','sync'].forEach(t => {
+        document.getElementById('tab-'+t).style.display = t===tab?'block':'none';
+    });
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+async function searchNotes() {
+    const kw = document.getElementById('searchKeyword').value.trim();
+    if (!kw) { showToast('请输入关键词'); return; }
+    const container = document.getElementById('searchResults');
+    container.innerHTML = '<div style="color:#999;">搜索中...</div>';
+    try {
+        const res = await fetch(`/xhs/search?keyword=${encodeURIComponent(kw)}&count=15`);
+        const data = await res.json();
+        if (data.error) { container.innerHTML = `<div style="color:var(--orange);">${data.error}</div>`; return; }
+        container.innerHTML = `<div style="font-size:12px;color:#999;margin-bottom:8px;">找到 ${data.total} 条结果</div>` +
+            data.notes.map(n => `<div class="note-card">
+                <div class="ntitle">${esc(n.title)}</div>
+                <div style="font-size:11px;color:#666;margin-bottom:4px;">${esc(n.desc).slice(0,100)}</div>
+                <div class="nstats">👤 ${esc(n.author_name)} · ❤️ ${n.likes} · 💬 ${n.comments} · ⭐ ${n.collects} · ${n.tags.map(t=>'#'+t).join(' ')}</div>
+            </div>`).join('');
+    } catch (err) { container.innerHTML = '<div style="color:#e53e3e;">请求失败，请确认Cookie已配置</div>'; }
+}
+
+async function trendInsights() {
+    const kw = document.getElementById('searchKeyword').value.trim();
+    if (!kw) { showToast('请输入关键词'); return; }
+    const container = document.getElementById('searchResults');
+    container.innerHTML = '<div style="color:#999;">深度分析中...</div>';
+    try {
+        const res = await fetch(`/xhs/trend-insights?keyword=${encodeURIComponent(kw)}`);
+        const data = await res.json();
+        if (data.error) { container.innerHTML = `<div style="color:var(--orange);">${data.error}</div>`; return; }
+        container.innerHTML = `
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px;">📊 「${esc(kw)}」趋势洞察（基于${data.sample_count}条热门笔记）</div>
+            <div style="margin-bottom:12px;">
+                <strong>标题模式分布：</strong><br>
+                ${Object.entries(data.title_patterns||{}).map(([k,v])=>`${k}: ${v}条`).join(' · ')}
+            </div>
+            <div style="margin-bottom:12px;">
+                <strong>热门标签：</strong>${(data.trend?.top_tags||[]).map(t=>'#'+t).join(' ')}
+            </div>
+            <div><strong>热门标题示例：</strong></div>
+            ${(data.sample_titles||[]).map(t=>`<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #f5f5f5;">📌 ${esc(t)}</div>`).join('')}
+        `;
+    } catch (err) { container.innerHTML = '<div style="color:#e53e3e;">请求失败</div>'; }
+}
+
+async function publishToXHS() {
+    const cid = document.getElementById('publishContentSelect').value;
+    if (!cid) { showToast('请选择内容'); return; }
+    const container = document.getElementById('publishResult');
+    container.innerHTML = '<div style="color:#999;">发布中...</div>';
+    try {
+        const res = await fetch('/xhs/publish', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({content_id: cid, is_public: true}),
+        });
+        const data = await res.json();
+        if (data.published) {
+            container.innerHTML = `<div style="color:var(--green);">✅ 发布成功！<br><a href="${data.url}" target="_blank">${data.url}</a></div>`;
+        } else {
+            container.innerHTML = `<div style="color:var(--orange);">❌ ${data.error||'发布失败'}</div>`;
+        }
+    } catch (err) { container.innerHTML = '<div style="color:#e53e3e;">请求失败</div>'; }
+}
+
+async function syncAll() {
+    const container = document.getElementById('syncResult');
+    container.innerHTML = '<div style="color:#999;">同步中...</div>';
+    try {
+        const res = await fetch('/xhs/sync-all', { method: 'POST' });
+        const data = await res.json();
+        container.innerHTML = `<div style="color:var(--green);">✅ 同步完成：${data.synced}/${data.total} 条成功${data.errors>0?'，'+data.errors+'条失败':''}</div>`;
+    } catch (err) { container.innerHTML = '<div style="color:#e53e3e;">同步失败</div>'; }
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+</script>
+</body>
+</html>

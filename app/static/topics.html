@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>选题管理 - 小红书AI内容管理系统</title>
+<style>
+:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.08); --green: #38a169; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:18px; text-align:center; }
+.header h1 { font-size:18px; }
+.nav { display:flex; gap:6px; justify-content:center; padding:10px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:5px 12px; border-radius:14px; font-size:12px; border:1px solid var(--border); }
+.nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.container { max-width:900px; margin:0 auto; padding:20px 16px; }
+.card { background:var(--card); border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:var(--shadow); }
+.card h2 { font-size:16px; margin-bottom:12px; display:flex; align-items:center; gap:8px; justify-content:space-between; }
+.btn { padding:8px 18px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:#e01e3a; }
+.btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+.btn-outline { background:none; border:1px solid #ddd; color:#666; }
+.btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+.btn-sm { padding:4px 10px; font-size:11px; border-radius:5px; }
+.btn-green { background:var(--green); color:#fff; }
+.btn-green:hover { background:#2f855a; }
+.topic-card { border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; transition:all .2s; cursor:pointer; }
+.topic-card:hover { border-color:var(--primary); box-shadow:0 2px 8px rgba(255,36,66,0.1); }
+.topic-card.selected { border-color:var(--primary); background:#fff5f6; }
+.topic-title { font-size:15px; font-weight:600; margin-bottom:6px; }
+.topic-reason { font-size:12px; color:#666; margin-bottom:8px; line-height:1.5; }
+.topic-meta { display:flex; gap:12px; font-size:11px; color:#999; }
+.badge { display:inline-block; padding:1px 8px; border-radius:3px; font-size:10px; font-weight:600; }
+.badge-ai { background:#e8f4fd; color:#2b6cb0; }
+.badge-manual { background:#e8fde8; color:#276749; }
+.badge-generated { background:#fef3c7; color:#92400e; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; display:flex; align-items:center; justify-content:center; }
+.modal { background:#fff; border-radius:14px; padding:24px; width:90%; max-width:500px; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+.modal h3 { margin-bottom:16px; }
+.modal label { display:block; font-size:13px; font-weight:600; margin-bottom:4px; }
+.modal input, .modal textarea { width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; margin-bottom:12px; font-family:inherit; }
+.modal input:focus, .modal textarea:focus { outline:none; border-color:var(--primary); }
+.modal textarea { resize:vertical; min-height:60px; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+.loading { text-align:center; padding:30px; color:#999; }
+.empty { text-align:center; padding:30px; color:#999; font-size:13px; }
+.anim-pulse { animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:13px; z-index:200; opacity:0; transition:opacity .3s; pointer-events:none; }
+.toast.show { opacity:1; }
+.toolbar { display:flex; gap:8px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+<div class="header"><h1>💡 选题管理</h1></div>
+<div class="nav">
+    <a href="/">🏠 首页</a>
+    <a href="/materials/page">📚 素材库</a>
+    <a href="/brand/page">👤 人设</a>
+    <a href="/topics/page" class="active">💡 选题</a>
+    <a href="/contents/page">✍️ 生成</a>
+    <a href="/publishes/page">📤 发布</a>
+    <a href="/comments/page">💬 评论</a>
+    <a href="/analytics/page">📊 看板</a>
+    <a href="/xhs/page">🔗 XHS</a>
+    <a href="/obsidian/page">💎 Obsidian</a>
+</div>
+<div class="container">
+    <!-- 操作区 -->
+    <div class="card">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="btnSuggest" onclick="suggestTopics()">🤖 AI推荐选题</button>
+            <button class="btn btn-outline" onclick="showCreateModal()">✏️ 手动创建</button>
+            <span style="font-size:12px;color:#999;">共 <strong id="topicCount">0</strong> 个选题</span>
+        </div>
+        <div id="suggestStatus" style="margin-top:10px;font-size:13px;color:#666;display:none;"></div>
+    </div>
+
+    <!-- 选题列表 -->
+    <div id="topicList"><div class="loading">加载中...</div></div>
+
+    <!-- 选中操作栏 -->
+    <div id="actionBar" style="display:none; position:sticky; bottom:16px; background:var(--card); border-radius:12px; padding:14px 20px; box-shadow:0 -2px 16px rgba(0,0,0,0.12); display:flex; gap:10px; align-items:center; justify-content:center;">
+        <span style="font-size:13px;">已选 <strong id="selectedLabel">0</strong> 个选题</span>
+        <button class="btn btn-green btn-sm" onclick="generateSelected()">✍️ 生成文案</button>
+        <button class="btn btn-outline btn-sm" onclick="batchDelete()" style="color:#e53e3e;">🗑 批量删除</button>
+        <button class="btn btn-outline btn-sm" onclick="clearSelection()">取消选择</button>
+    </div>
+</div>
+
+<!-- 手动创建弹窗 -->
+<div class="modal-overlay" id="createModal" style="display:none;">
+    <div class="modal">
+        <h3>✏️ 手动创建选题</h3>
+        <label>选题标题 *</label>
+        <input type="text" id="newTitle" placeholder="给你的选题起个名字">
+        <label>选题理由</label>
+        <textarea id="newReason" placeholder="为什么想做这个选题？"></textarea>
+        <label>目标受众</label>
+        <input type="text" id="newAudience" placeholder="写给谁看？">
+        <label>写作风格</label>
+        <input type="text" id="newTone" placeholder="什么语气？">
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeCreateModal()">取消</button>
+            <button class="btn btn-primary" onclick="createTopic()">创建</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let selectedIds = new Set();
+
+async function loadTopics() {
+    try {
+        const res = await fetch('/topics/list');
+        const data = await res.json();
+        document.getElementById('topicCount').textContent = data.length;
+        const container = document.getElementById('topicList');
+        if (data.length === 0) {
+            container.innerHTML = '<div class="empty">还没有选题，点击「AI推荐选题」或「手动创建」<br>提示：先确保素材库有内容和人设已配置</div>';
+            return;
+        }
+        let html = '';
+        for (const t of data) {
+            const srcBadge = t.source === 'ai_suggest' ? '<span class="badge badge-ai">AI推荐</span>' : '<span class="badge badge-manual">手动</span>';
+            const statusBadge = t.status === 'generated' ? '<span class="badge badge-generated">已生成</span>' : '';
+            const sel = selectedIds.has(t.id) ? ' selected' : '';
+            const typeEmoji = { '干货教程型': '🎯', '洞察观点型': '💡', '案例拆解型': '🔍', '清单合集型': '📋' };
+            html += `<div class="topic-card${sel}" onclick="toggleTopic(this, '${t.id}')" data-id="${t.id}">
+                <div class="topic-title">${esc(t.title)} ${srcBadge} ${statusBadge}</div>
+                <div class="topic-reason">${esc(t.reason)}</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:10px;color:#888;margin-bottom:4px;">
+                    ${t.type ? '<span>'+(typeEmoji[t.type]||'')+' '+esc(t.type)+'</span>' : ''}
+                    ${t.workload ? '<span>工作量 '+esc(t.workload)+'</span>' : ''}
+                    ${t.advantage ? '<span>✅ '+esc(t.advantage).slice(0,30)+'</span>' : ''}
+                </div>
+                <div class="topic-meta">${t.created_at.slice(0,10)} · ${t.source === 'ai_suggest' ? 'AI' : '手动'} · ${t.status}
+                    <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();deleteTopic('${t.id}')" style="margin-left:8px;font-size:10px;color:#e53e3e;">🗑</button>
+                </div>
+            </div>`;
+        }
+        container.innerHTML = html;
+        updateActionBar();
+    } catch (err) {
+        document.getElementById('topicList').innerHTML = '<div class="empty">加载失败</div>';
+    }
+}
+
+function toggleTopic(el, id) {
+    if (selectedIds.has(id)) { selectedIds.delete(id); el.classList.remove('selected'); }
+    else { selectedIds.add(id); el.classList.add('selected'); }
+    updateActionBar();
+}
+
+function updateActionBar() {
+    const bar = document.getElementById('actionBar');
+    document.getElementById('selectedLabel').textContent = selectedIds.size;
+    bar.style.display = selectedIds.size > 0 ? 'flex' : 'none';
+}
+
+function clearSelection() {
+    selectedIds.clear();
+    document.querySelectorAll('.topic-card.selected').forEach(el => el.classList.remove('selected'));
+    updateActionBar();
+}
+
+async function suggestTopics() {
+    const btn = document.getElementById('btnSuggest');
+    const status = document.getElementById('suggestStatus');
+    btn.disabled = true;
+    btn.textContent = '⏳ AI思考中...';
+    status.style.display = 'block';
+    status.innerHTML = '<span class="anim-pulse">🤖 正在分析素材库内容，生成选题建议...</span>';
+    try {
+        const res = await fetch('/topics/suggest', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+            status.innerHTML = `✅ 成功生成 <strong>${data.count}</strong> 个选题！`;
+            showToast(`AI推荐了 ${data.count} 个选题`);
+            loadTopics();
+        } else {
+            status.innerHTML = `❌ ${data.detail || '生成失败'}`;
+        }
+    } catch (err) {
+        status.innerHTML = '❌ 网络错误，请检查 LLM 配置';
+    }
+    btn.disabled = false;
+    btn.textContent = '🤖 AI推荐选题';
+    setTimeout(() => { status.style.display = 'none'; }, 3000);
+}
+
+function showCreateModal() {
+    document.getElementById('createModal').style.display = 'flex';
+}
+
+function closeCreateModal() {
+    document.getElementById('createModal').style.display = 'none';
+    document.getElementById('newTitle').value = '';
+    document.getElementById('newReason').value = '';
+    document.getElementById('newAudience').value = '';
+    document.getElementById('newTone').value = '';
+}
+
+async function createTopic() {
+    const title = document.getElementById('newTitle').value.trim();
+    if (!title) { showToast('标题不能为空'); return; }
+    try {
+        const res = await fetch('/topics/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title,
+                reason: document.getElementById('newReason').value,
+                audience: document.getElementById('newAudience').value,
+                tone: document.getElementById('newTone').value,
+            }),
+        });
+        if (res.ok) {
+            showToast('选题创建成功！');
+            closeCreateModal();
+            loadTopics();
+        }
+    } catch (err) { showToast('创建失败'); }
+}
+
+async function batchDelete() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`确定删除选中的 ${ids.length} 个选题吗？`)) return;
+    for (const id of ids) {
+        try { await fetch(`/topics/${id}`, { method: 'DELETE' }); } catch (e) {}
+    }
+    showToast(`已删除 ${ids.length} 个选题`);
+    selectedIds.clear();
+    loadTopics();
+    updateActionBar();
+}
+
+async function deleteTopic(id) {
+    if (!confirm('确定删除这个选题吗？')) return;
+    try {
+        await fetch(`/topics/${id}`, { method: 'DELETE' });
+        showToast('已删除');
+        loadTopics();
+    } catch (err) { showToast('删除失败'); }
+}
+
+function generateSelected() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    // 跳转到内容生成页，带上选题ID
+    window.location.href = `/contents/page?topic_ids=${ids.join(',')}`;
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+}
+
+loadTopics();
+</script>
+</body>
+</html>
