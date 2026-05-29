@@ -3,94 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>素材库 - 小红书AI内容管理系统</title>
+<title>知识库 - QuillMate</title>
 <style>
-:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.06); --green: #38a169; }
+:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.06); --green: #38a169; --orange: #dd6b20; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:16px 20px; text-align:center; }
-.header h1 { font-size:18px; font-weight:700; }
-.nav { display:flex; gap:4px; justify-content:center; padding:8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
-.nav a { text-decoration:none; color:var(--text); padding:4px 10px; border-radius:12px; font-size:11px; border:1px solid var(--border); white-space:nowrap; }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:14px 20px; text-align:center; }
+.header h1 { font-size:17px; font-weight:700; }
+.nav { display:flex; gap:3px; justify-content:center; padding:6px 8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:3px 9px; border-radius:11px; font-size:11px; border:1px solid var(--border); white-space:nowrap; transition:all .15s; }
 .nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
 .container { max-width:1000px; margin:0 auto; padding:20px 16px; }
-
-/* 上传区 */
-.upload-card { background:var(--card); border-radius:14px; padding:0; margin-bottom:16px; box-shadow:var(--shadow); overflow:hidden; }
-.upload-zone { border:2px dashed #e0e0e0; border-radius:12px; margin:16px; padding:28px; text-align:center; cursor:pointer; transition:all .2s; position:relative; }
-.upload-zone:hover, .upload-zone.dragover { border-color:var(--primary); background:#fff5f6; }
-.upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
-.upload-zone .icon { font-size:36px; margin-bottom:6px; }
-.upload-zone .text { font-size:13px; font-weight:600; }
-.upload-zone .hint { font-size:11px; color:#999; margin-top:4px; }
-
-/* 上传队列 */
-.upload-queue { padding:0 16px 16px; }
-.upload-item { display:flex; align-items:center; gap:10px; padding:8px 12px; background:#f9f9f9; border-radius:8px; margin-bottom:6px; font-size:12px; }
-.upload-item .name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.upload-item .status { font-size:11px; white-space:nowrap; }
-.upload-item .status.ok { color:var(--green); }
-.upload-item .status.err { color:var(--primary); }
-.upload-item .bar-wrap { width:80px; height:4px; background:#eee; border-radius:2px; overflow:hidden; }
-.upload-item .bar-fill { height:100%; background:var(--primary); border-radius:2px; transition:width .3s; }
-
-/* 工具栏 */
-.toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
-.toolbar input[type=text] { flex:1; min-width:180px; padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; }
-.toolbar input[type=text]:focus { outline:none; border-color:var(--primary); }
-.toolbar select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:12px; }
-.btn { padding:7px 16px; border-radius:8px; border:none; cursor:pointer; font-size:12px; font-weight:600; transition:all .2s; }
-.btn-outline { background:none; border:1px solid #ddd; color:#666; }
-.btn-outline:hover { border-color:var(--primary); color:var(--primary); }
-.btn-danger { background:var(--primary); color:#fff; }
-.btn-danger:hover { background:#d01e38; }
-.btn-sm { padding:4px 10px; font-size:11px; border-radius:5px; }
-.btn:disabled { opacity:0.4; cursor:not-allowed; }
-
-/* 素材卡片网格 */
-.material-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:12px; }
-.material-card { background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow); cursor:pointer; transition:all .15s; border:2px solid transparent; position:relative; }
-.material-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.1); }
-.material-card.selected { border-color:var(--primary); background:#fff5f6; }
-.material-card .check { position:absolute; top:10px; right:10px; width:18px; height:18px; border-radius:50%; border:2px solid #ccc; display:none; align-items:center; justify-content:center; font-size:10px; color:#fff; }
-.material-card.bulk-mode .check { display:flex; }
-.material-card.selected .check { background:var(--primary); border-color:var(--primary); display:flex; }
-.material-card .mtype { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; margin-bottom:8px; }
-.mtype-pdf { background:#fde8e8; color:#c53030; }
-.mtype-md { background:#e8f4fd; color:#2b6cb0; }
-.mtype-txt { background:#e8fde8; color:#276749; }
-.mtype-docx { background:#e8e4fd; color:#553c9a; }
-.material-card .mtitle { font-size:14px; font-weight:700; margin-bottom:6px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.material-card .mpreview { font-size:11px; color:#888; line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:10px; }
-.material-card .mmeta { font-size:10px; color:#bbb; display:flex; gap:12px; }
-
-/* 预览弹窗 */
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
-.modal { background:#fff; border-radius:14px; width:100%; max-width:750px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 8px 40px rgba(0,0,0,0.2); }
-.modal-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
-.modal-header h2 { font-size:16px; }
-.modal-header .close { background:none; border:none; font-size:20px; cursor:pointer; color:#999; padding:4px 8px; }
-.modal-header .close:hover { color:var(--primary); }
-.modal-body { padding:20px; overflow-y:auto; flex:1; font-size:14px; line-height:2; white-space:pre-wrap; }
-.modal-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#999; }
-
-/* 批量工具栏 */
-.bulk-bar { position:sticky; bottom:16px; background:var(--card); border-radius:14px; padding:12px 20px; box-shadow:0 -2px 20px rgba(0,0,0,0.12); display:none; align-items:center; gap:12px; justify-content:center; z-index:100; }
-
-.empty-state { text-align:center; padding:60px 20px; }
-.empty-state .icon { font-size:56px; margin-bottom:12px; }
-.empty-state .text { color:#999; font-size:14px; }
-.empty-state .sub { color:#ccc; font-size:12px; margin-top:4px; }
-
+.card { background:var(--card); border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:var(--shadow); }
+.btn { padding:7px 16px; border-radius:8px; border:none; cursor:pointer; font-size:12px; font-weight:600; }
+.btn-purple { background:var(--primary); color:#fff; }
+.btn-outline { background:none; border:1px solid #ddd; color:#666; font-size:11px; padding:5px 10px; }
+.btn-sm { padding:4px 10px; font-size:10px; }
+input, select, textarea { padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:12px; font-family:inherit; }
+input:focus, select:focus { outline:none; border-color:var(--primary); }
+.status-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+.status-on { background:#e6ffed; color:var(--green); }
+.status-off { background:#fff3cd; color:var(--orange); }
+.row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.result { background:#f9f9f9; border-radius:10px; padding:12px; margin-top:8px; font-size:12px; white-space:pre-wrap; line-height:1.6; }
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 22px; border-radius:8px; font-size:13px; z-index:2000; opacity:0; transition:opacity .3s; pointer-events:none; }
 .toast.show { opacity:1; }
+
+/* OB 大区块 */
+.ob-hero { background:linear-gradient(135deg, #f5f3ff, #ede9fe); border:2px solid #c4b5fd; border-radius:16px; padding:24px; margin-bottom:14px; }
+.ob-hero .ob-title { font-size:20px; font-weight:800; color:var(--primary); margin-bottom:4px; display:flex; align-items:center; gap:10px; }
+.ob-hero .ob-subtitle { font-size:12px; color:#ff2442; margin-bottom:16px; }
+.ob-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media(max-width:600px){.ob-grid{grid-template-columns:1fr;}}
+.ob-box { background:#fff; border-radius:12px; padding:14px; }
+.ob-box .box-title { font-size:13px; font-weight:700; margin-bottom:8px; color:var(--primary); }
+.note-list { max-height:200px; overflow-y:auto; font-size:12px; }
+.note-item { padding:6px 8px; border-radius:6px; cursor:pointer; display:flex; justify-content:space-between; }
+.note-item:hover { background:#f5f3ff; }
+.code-block { background:#1e1e2e; color:#cdd6f4; border-radius:10px; padding:12px; font-family:monospace; font-size:11px; overflow-x:auto; margin:6px 0; }
+
+/* 素材列表小卡片 */
+.mat-card { border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:6px; display:flex; align-items:center; gap:12px; }
+.mat-card:hover { border-color:var(--primary); }
+.mat-icon { font-size:22px; }
+.mat-info { flex:1; min-width:0; }
+.mat-info .title { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mat-info .meta { font-size:10px; color:#999; }
+.mat-info .preview { font-size:10px; color:#bbb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.badge { display:inline-block; padding:1px 6px; border-radius:3px; font-size:9px; font-weight:700; }
+.badge-pdf{background:#fde8e8;color:#c53030}.badge-md{background:#e8f4fd;color:#2b6cb0}.badge-txt{background:#e8fde8;color:#276749}.badge-docx{background:#e8e4fd;color:#553c9a}
 </style>
 </head>
 <body>
-<div class="header"><h1>📚 素材库</h1></div>
+<div class="header"><h1>💎 知识库</h1></div>
 <div class="nav">
     <a href="/">🏠 首页</a>
-    <a href="/materials/page" class="active">📚 素材库</a>
+    <a href="/materials/page" class="active">💎 知识库</a>
     <a href="/brand/page">👤 人设</a>
     <a href="/topics/page">💡 选题</a>
     <a href="/contents/page">✍️ 生成</a>
@@ -98,257 +66,290 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <a href="/comments/page">💬 评论</a>
     <a href="/analytics/page">📊 看板</a>
     <a href="/xhs/page">🔗 XHS</a>
-    <a href="/obsidian/page">💎 Obsidian</a>
 </div>
 <div class="container">
-    <!-- 上传区 -->
-    <div class="upload-card">
-        <div class="upload-zone" id="uploadZone">
-            <div class="icon">📁</div>
-            <div class="text">点击上传或拖拽文件到此处</div>
-            <div class="hint">PDF · DOCX · Markdown · TXT ｜ 单文件最大 50MB ｜ 自动解析文本</div>
-            <input type="file" id="fileInput" accept=".pdf,.docx,.md,.txt" multiple>
+    <!-- ═══════════ Obsidian 大区块 ═══════════ -->
+    <div class="ob-hero">
+        <div class="ob-title">💎 Obsidian Vault <span id="obsStatus"></span></div>
+        <div class="ob-subtitle" id="obsSubtitle">你的知识中枢，所有内容的第一入口</div>
+        <div class="ob-grid">
+            <!-- 左侧：操作 -->
+            <div class="ob-box">
+                <div class="box-title">📥 同步与导出</div>
+                <div class="row" style="margin-bottom:8px;">
+                    <button class="btn btn-purple btn-sm" onclick="obsImport()">📥 同步笔记到素材库</button>
+                    <button class="btn btn-outline btn-sm" onclick="obsBrowse()">📋 浏览</button>
+                </div>
+                <div class="row">
+                    <select id="outputFolder" style="width:110px;">
+                        <option value="30-Output">30-Output</option>
+                        <option value="20-Projects">20-Projects</option>
+                    </select>
+                    <select id="contentSelect" style="flex:1;min-width:120px;"><option value="">选择文案导出...</option></select>
+                    <button class="btn btn-outline btn-sm" onclick="obsExport()">📤 导出</button>
+                </div>
+                <div class="result" id="obsResult" style="display:none;margin-top:8px;"></div>
+            </div>
+            <!-- 右侧：PDF结构化引导 -->
+            <div class="ob-box">
+                <div class="box-title">🔧 PDF 结构化</div>
+                <div style="font-size:11px;color:#666;line-height:1.8;">
+                    下方素材列表中，每个 <strong>PDF 文件</strong> 右侧都有 <strong style="color:var(--primary);">🪄 结构化</strong> 按钮。<br>
+                    点击后自动提取 PDF 全文，保存为 .md 格式，可直接用于 AI 选题和生成。
+                </div>
+                <div style="font-size:10px;color:#999;margin-top:6px;">
+                    ⚡ 已内置 PyPDF2 引擎，无需额外安装依赖。
+                </div>
+            </div>
         </div>
-        <div class="upload-queue" id="uploadQueue"></div>
-    </div>
-
-    <!-- 工具栏 -->
-    <div class="toolbar">
-        <input type="text" id="searchInput" placeholder="🔍 搜索素材标题或内容..." oninput="renderGrid()">
-        <select id="typeFilter" onchange="renderGrid()">
-            <option value="">全部类型</option>
-            <option value=".pdf">PDF</option>
-            <option value=".docx">DOCX</option>
-            <option value=".md">Markdown</option>
-            <option value=".txt">TXT</option>
-        </select>
-        <button class="btn btn-outline btn-sm" id="btnBulk" onclick="toggleBulk()">☑️ 批量选择</button>
-        <span style="font-size:11px;color:#999;white-space:nowrap;">共 <strong id="countLabel">0</strong> 条</span>
-    </div>
-
-    <!-- 素材卡片 -->
-    <div class="material-grid" id="materialGrid">
-        <div class="empty-state"><div class="icon">📭</div><div class="text">还没有素材</div><div class="sub">上传你的第一个文档开始吧</div></div>
-    </div>
-
-    <!-- 批量操作栏 -->
-    <div class="bulk-bar" id="bulkBar">
-        <span style="font-size:12px;">已选 <strong id="selectedCount">0</strong> 条</span>
-        <button class="btn btn-danger btn-sm" onclick="batchDelete()">🗑 批量删除</button>
-        <button class="btn btn-outline btn-sm" onclick="toggleBulk()">取消</button>
-    </div>
-</div>
-
-<!-- 预览弹窗 -->
-<div class="modal-overlay" id="previewModal" style="display:none;" onclick="if(event.target===this)closePreview()">
-    <div class="modal">
-        <div class="modal-header">
-            <h2 id="previewTitle"></h2>
-            <button class="close" onclick="closePreview()">✕</button>
+        <!-- 浏览区 -->
+        <div id="obsBrowseArea" style="display:none;margin-top:12px;">
+            <div class="note-list" id="noteList"></div>
+            <div class="result" id="noteDetail" style="display:none;"></div>
         </div>
-        <div class="modal-body" id="previewBody"></div>
-        <div class="modal-footer">
-            <span id="previewMeta"></span>
-            <button class="btn btn-outline btn-sm" id="previewDelete">🗑 删除</button>
+    </div>
+
+    <!-- ═══════════ 本地素材 ═══════════ -->
+    <div class="card">
+        <div class="row" style="margin-bottom:12px;justify-content:space-between;">
+            <span style="font-weight:700;font-size:14px;">📁 本地素材 <span style="font-size:11px;color:#999;font-weight:400;" id="matCount"></span></span>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('uploadArea').style.display=document.getElementById('uploadArea').style.display==='none'?'block':'none'">📤 上传</button>
         </div>
+        <!-- 上传区（默认收起） -->
+        <div id="uploadArea" style="display:none;margin-bottom:12px;">
+            <div class="upload-zone" id="uploadZone" style="border:2px dashed #ddd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;position:relative;">
+                <div style="font-size:22px;">📤</div>
+                <div style="font-size:12px;">拖拽或点击上传 PDF · DOCX · MD · TXT</div>
+                <div style="font-size:10px;color:#999;">单个最大 50MB</div>
+                <input type="file" id="fileInput" accept=".pdf,.docx,.md,.txt" multiple style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+            </div>
+            <div id="uploadQueue" style="font-size:11px;margin-top:6px;"></div>
+        </div>
+        <!-- 搜索与分类 -->
+        <div class="row" style="margin-bottom:10px;">
+            <input type="text" id="searchInput" placeholder="🔍 搜索素材..." style="flex:1;min-width:140px;" oninput="debounceRender()">
+            <select id="typeFilter" onchange="matPage=0;renderMatList()" style="width:100px;">
+                <option value="">全部类型</option>
+                <option value=".pdf">PDF</option>
+                <option value=".docx">DOCX</option>
+                <option value=".md">Markdown</option>
+                <option value=".txt">TXT</option>
+            </select>
+            <select id="sortBy" onchange="matPage=0;renderMatList()" style="width:90px;">
+                <option value="newest">最新</option>
+                <option value="name">名称</option>
+                <option value="words">字数</option>
+            </select>
+        </div>
+        <div id="matList"><div style="color:#999;font-size:12px;text-align:center;padding:20px;">加载中...</div></div>
     </div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
-let allMaterials = [];
-let selectedIds = new Set();
-let bulkMode = false;
-let previewId = null;
+let allMats = [];
 
-// ── 上传逻辑 ──
+async function init() {
+    // OB status
+    try {
+        const r = await fetch('/obsidian/status');
+        const d = await r.json();
+        const el = document.getElementById('obsStatus');
+        if (d.enabled && d.api?.connected) {
+            el.innerHTML = '<span class="status-badge status-on">✅ 已连接</span>';
+            document.getElementById('obsSubtitle').textContent = '你的知识中枢 · ' + d.vault_path;
+        } else if (d.enabled) {
+            el.innerHTML = '<span class="status-badge status-off">⚠️ API未连接</span>';
+        } else {
+            el.innerHTML = '<span class="status-badge status-off">未配置</span>';
+            document.getElementById('obsSubtitle').textContent = '配置 OBSIDIAN_VAULT 后自动同步';
+        }
+    } catch(e) {}
+
+    // content list for export
+    try {
+        const r = await fetch('/contents/list');
+        const cs = await r.json();
+        const sel = document.getElementById('contentSelect');
+        cs.forEach(c => { sel.innerHTML += `<option value="${c.id}">${esc(c.title)}</option>`; });
+    } catch(e) {}
+
+    loadMatList();
+}
+init();
+
+// ═══════════ Obsidian ═══════════
+async function obsImport() {
+    const el = document.getElementById('obsResult');
+    el.style.display = 'block'; el.textContent = '同步中...';
+    try {
+        const r = await fetch('/obsidian/import', {method:'POST',headers:{'Content-Type':'application/json'},body:'{"all":true,"limit":50}'});
+        const d = await r.json();
+        el.innerHTML = `✅ 同步完成：新增 <strong>${d.imported}</strong> 条，跳过 ${d.skipped} 条`;
+        loadMatList();
+    } catch(e) { el.textContent = '❌ 同步失败'; }
+}
+
+async function obsBrowse() {
+    const area = document.getElementById('obsBrowseArea');
+    area.style.display = 'block';
+    const list = document.getElementById('noteList');
+    list.innerHTML = '<div style="color:#999;">加载中...</div>';
+    try {
+        const r = await fetch('/obsidian/notes');
+        const d = await r.json();
+        list.innerHTML = d.notes.slice(0,30).map(n =>
+            `<div class="note-item"><span style="cursor:pointer;flex:1;" data-path="${escAttr(n)}">📄 ${esc(n.split('/').pop())}</span><span style="font-size:10px;color:#999;">${esc(n)}</span></div>`
+        ).join('');
+        list.querySelectorAll('.note-item span[data-path]').forEach(el => {
+            el.addEventListener('click', function(){ obsViewNote(this.dataset.path); });
+        });
+    } catch(e) { list.innerHTML = '<div style="color:#e53e3e;">加载失败</div>'; }
+}
+
+async function obsViewNote(path) {
+    const el = document.getElementById('noteDetail');
+    el.style.display = 'block'; el.textContent = '加载中...';
+    try {
+        const encoded = path.split('/').map(p => encodeURIComponent(p)).join('/');
+        const r = await fetch('/obsidian/notes/' + encoded);
+        const d = await r.json();
+        el.innerHTML = `<strong>${esc(d.title)}</strong> <span style="font-size:10px;color:#999;">${d.word_count}字 · ${(d.tags||[]).map(t=>'#'+t).join(' ')}</span><div style="margin-top:4px;max-height:150px;overflow-y:auto;font-size:11px;line-height:1.6;">${esc(d.content).slice(0,400)}</div>`;
+    } catch(e) { el.textContent = '❌ 加载失败'; }
+}
+
+async function obsExport() {
+    const cid = document.getElementById('contentSelect').value;
+    const folder = document.getElementById('outputFolder').value;
+    if(!cid) { showToast('请选择内容'); return; }
+    const el = document.getElementById('obsResult');
+    el.style.display = 'block'; el.textContent = '导出中...';
+    try {
+        const r = await fetch('/obsidian/export', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content_id:cid,folder})});
+        const d = await r.json();
+        if(d.created) el.innerHTML = `✅ 已保存: <code>${esc(d.path)}</code>`;
+        else el.innerHTML = `❌ ${d.error||'失败'}`;
+    } catch(e) { el.textContent = '❌ 导出失败'; }
+}
+
+async function structureMat(id) {
+    const el = document.getElementById('obsResult');
+    el.style.display = 'block'; el.textContent = '⏳ markitdown 结构化处理中...';
+    try {
+        const r = await fetch('/materials/'+id+'/structure', {method:'POST'});
+        const d = await r.json();
+        if(r.ok) {
+            el.innerHTML = `✅ 结构化完成！<br>输出: <code>${esc(d.output_path)}</code><br>已生成新素材: ${esc(d.preview).slice(0,80)}...`;
+            loadMatList();
+        } else {
+            el.innerHTML = `❌ ${d.detail||'失败'}`;
+        }
+    } catch(e) { el.textContent = '❌ 结构化失败'; }
+}
+
+// ═══════════ Upload ═══════════
 const uploadZone = document.getElementById('uploadZone');
 const fileInput = document.getElementById('fileInput');
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
-fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+if(uploadZone) {
+    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.style.borderColor='var(--primary)'; });
+    uploadZone.addEventListener('dragleave', () => uploadZone.style.borderColor='#ddd');
+    uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.style.borderColor='#ddd'; handleFiles(e.dataTransfer.files); });
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+}
 
 async function handleFiles(files) {
-    const queue = document.getElementById('uploadQueue');
-    for (const file of files) {
-        const itemId = 'up-' + Math.random().toString(36).slice(2,8);
-        queue.innerHTML += `<div class="upload-item" id="${itemId}">
-            <span class="name">${esc(file.name)}</span>
-            <div class="bar-wrap"><div class="bar-fill" style="width:30%"></div></div>
-            <span class="status">解析中...</span>
-        </div>`;
-
-        const formData = new FormData();
-        formData.append('file', file);
+    const q = document.getElementById('uploadQueue');
+    for(const file of files) {
+        q.innerHTML += `<div>⏳ ${esc(file.name)} ...</div>`;
+        const fd = new FormData(); fd.append('file', file);
         try {
-            const res = await fetch('/materials/upload', { method: 'POST', body: formData });
-            const data = await res.json();
-            const el = document.getElementById(itemId);
-            if (res.ok) {
-                el.querySelector('.bar-fill').style.width = '100%';
-                el.querySelector('.status').className = 'status ok';
-                el.querySelector('.status').textContent = `✅ ${data.word_count}字`;
-                showToast(`${data.title} 上传成功`);
-            } else {
-                el.querySelector('.status').className = 'status err';
-                el.querySelector('.status').textContent = '❌ ' + (data.detail || '失败');
-            }
-        } catch (err) {
-            document.getElementById(itemId).querySelector('.status').className = 'status err';
-            document.getElementById(itemId).querySelector('.status').textContent = '❌ 网络错误';
-        }
+            const r = await fetch('/materials/upload', {method:'POST',body:fd});
+            const d = await r.json();
+            if(r.ok) q.innerHTML += `<div style="color:var(--green);">✅ ${esc(d.title)} (${d.word_count}字)</div>`;
+            else q.innerHTML += `<div style="color:var(--primary);">❌ ${d.detail||'失败'}</div>`;
+        } catch(e) { q.innerHTML += '<div style="color:var(--primary);">❌ 网络错误</div>'; }
     }
-    // 清理队列
-    setTimeout(() => { queue.innerHTML = ''; }, 4000);
-    loadMaterials();
+    loadMatList();
+    setTimeout(()=>{ q.innerHTML = ''; }, 5000);
 }
 
-// ── 数据加载 ──
-async function loadMaterials() {
+// ═══════════ Material List ═══════════
+const PAGE_SIZE = 20;
+let matPage = 0;
+
+async function loadMatList() {
+    try { const r = await fetch('/materials/list'); allMats = await r.json(); matPage = 0; renderMatList(); }
+    catch(e) { document.getElementById('matList').innerHTML = '<div style="color:#e53e3e;">加载失败</div>'; }
+}
+
+function renderMatList() {
+    const q = (document.getElementById('searchInput').value||'').toLowerCase();
+    const ft = document.getElementById('typeFilter').value;
+    const sort = document.getElementById('sortBy').value;
+    let mats = [...allMats];
+    if(q) mats = mats.filter(m => m.title.toLowerCase().includes(q) || (m.preview||'').toLowerCase().includes(q));
+    if(ft) mats = mats.filter(m => m.file_type === ft);
+    if(sort === 'name') mats.sort((a,b) => a.title.localeCompare(b.title));
+    else if(sort === 'words') mats.sort((a,b) => b.word_count - a.word_count);
+
+    document.getElementById('matCount').textContent = `(${mats.length})`;
+    const el = document.getElementById('matList');
+    if(!mats.length) { el.innerHTML = '<div style="color:#ccc;font-size:12px;text-align:center;padding:20px;">暂无素材</div>'; return; }
+
+    // 只渲染当前页，减少DOM数量
+    const page = mats.slice(0, (matPage+1)*PAGE_SIZE);
+    const hasMore = page.length < mats.length;
+
+    const typeIcons = {'.pdf':'📕','.docx':'📘','.md':'📝','.txt':'📄'};
+    let html = '';
+    for (var i = matPage*PAGE_SIZE; i < Math.min((matPage+1)*PAGE_SIZE, mats.length); i++) {
+        var m = mats[i];
+        html += '<div class="mat-card">';
+        html += '<div class="mat-icon">'+(typeIcons[m.file_type]||'📁')+'</div>';
+        html += '<div class="mat-info" style="cursor:pointer;" onclick="viewMat(\''+m.id+'\')">';
+        html += '<div class="title">'+esc(m.title)+'</div>';
+        html += '<div class="meta"><span class="badge badge-'+m.file_type.replace('.','')+'">'+m.file_type+'</span> · '+m.word_count.toLocaleString()+'字 · '+(m.created_at||'').slice(0,10)+'</div>';
+        html += '<div class="preview">'+esc(m.preview||'')+'</div>';
+        html += '</div>';
+        if(m.file_type==='.pdf') html += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();structureMat(\''+m.id+'\')" style="color:var(--primary);">🪄 结构化</button>';
+        html += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();deleteMat(\''+m.id+'\')" style="color:var(--primary);">🗑</button>';
+        html += '</div>';
+    }
+    if (hasMore) {
+        html += '<div style="text-align:center;padding:12px;"><button class="btn btn-outline btn-sm" onclick="loadMore()">📥 加载更多 ('+(mats.length-page.length)+'条)</button></div>';
+    }
+    el.innerHTML = html;
+}
+
+function loadMore() {
+    matPage++;
+    renderMatList();
+}
+
+let debounceTimer;
+function debounceRender() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function(){ matPage = 0; renderMatList(); }, 300);
+}
+
+async function viewMat(id) {
     try {
-        const res = await fetch('/materials/list');
-        allMaterials = await res.json();
-        renderGrid();
-    } catch (err) {
-        document.getElementById('materialGrid').innerHTML = '<div class="empty-state"><div class="text" style="color:#e53e3e;">加载失败</div></div>';
-    }
+        const r = await fetch('/materials/'+id); const d = await r.json();
+        const w = window.open('','_blank','width=700,height=600');
+        w.document.write(`<html><head><meta charset="utf-8"><title>${esc(d.title)}</title><style>body{font-family:sans-serif;padding:24px;max-width:700px;margin:0 auto;line-height:2;white-space:pre-wrap;}</style></head><body><h2>${esc(d.title)}</h2><p style="color:#999;">${d.word_count}字 · ${d.file_type}</p><hr>${esc(d.content)}</body></html>`);
+    } catch(e) { showToast('加载失败'); }
 }
 
-// ── 渲染卡片 ──
-function renderGrid() {
-    const search = (document.getElementById('searchInput').value || '').toLowerCase();
-    const type = document.getElementById('typeFilter').value;
-
-    let filtered = allMaterials;
-    if (search) {
-        filtered = filtered.filter(m =>
-            m.title.toLowerCase().includes(search) ||
-            (m.preview || '').toLowerCase().includes(search)
-        );
-    }
-    if (type) {
-        filtered = filtered.filter(m => m.file_type === type);
-    }
-
-    document.getElementById('countLabel').textContent = filtered.length;
-    const grid = document.getElementById('materialGrid');
-
-    if (filtered.length === 0) {
-        grid.innerHTML = search || type
-            ? '<div class="empty-state"><div class="icon">🔍</div><div class="text">没有匹配的素材</div></div>'
-            : '<div class="empty-state"><div class="icon">📭</div><div class="text">还没有素材</div><div class="sub">上传你的第一个文档开始吧</div></div>';
-        return;
-    }
-
-    grid.innerHTML = filtered.map(m => {
-        const typeClass = 'mtype-' + (m.file_type === '.pdf' ? 'pdf' : m.file_type === '.md' ? 'md' : m.file_type === '.txt' ? 'txt' : 'docx');
-        const typeName = m.file_type.replace('.', '').toUpperCase();
-        const sel = selectedIds.has(m.id) ? ' selected' : '';
-        const bm = bulkMode ? ' bulk-mode' : '';
-        return `<div class="material-card${sel}${bm}" data-id="${m.id}" onclick="onCardClick(event, '${m.id}')">
-            <div class="check">✓</div>
-            <span class="mtype ${typeClass}">${typeName}</span>
-            <div class="mtitle">${esc(m.title)}</div>
-            <div class="mpreview">${esc(m.preview || '（无预览）')}</div>
-            <div class="mmeta">
-                <span>📝 ${m.word_count.toLocaleString()}字</span>
-                <span>📅 ${m.created_at.slice(0,10)}</span>
-            </div>
-        </div>`;
-    }).join('');
+async function deleteMat(id) {
+    if(!confirm('确定删除？')) return;
+    await fetch('/materials/'+id, {method:'DELETE'});
+    showToast('已删除'); loadMatList();
 }
 
-function onCardClick(e, id) {
-    if (bulkMode) {
-        e.stopPropagation();
-        toggleSelect(id);
-        return;
-    }
-    openPreview(id);
-}
-
-function toggleSelect(id) {
-    if (selectedIds.has(id)) selectedIds.delete(id);
-    else selectedIds.add(id);
-    renderGrid();
-    updateBulkBar();
-}
-
-function toggleBulk() {
-    bulkMode = !bulkMode;
-    if (!bulkMode) selectedIds.clear();
-    document.getElementById('btnBulk').textContent = bulkMode ? '☑️ 取消批量' : '☑️ 批量选择';
-    document.getElementById('btnBulk').style.background = bulkMode ? 'var(--primary)' : '';
-    document.getElementById('btnBulk').style.color = bulkMode ? '#fff' : '';
-    renderGrid();
-    updateBulkBar();
-}
-
-function updateBulkBar() {
-    const bar = document.getElementById('bulkBar');
-    document.getElementById('selectedCount').textContent = selectedIds.size;
-    bar.style.display = bulkMode && selectedIds.size > 0 ? 'flex' : 'none';
-}
-
-async function batchDelete() {
-    if (selectedIds.size === 0) return;
-    if (!confirm(`确定删除选中的 ${selectedIds.size} 条素材吗？文件也会同时删除。`)) return;
-    let count = 0;
-    for (const id of selectedIds) {
-        try { await fetch(`/materials/${id}`, { method: 'DELETE' }); count++; } catch (e) {}
-    }
-    showToast(`已删除 ${count} 条素材`);
-    selectedIds.clear();
-    toggleBulk();
-    loadMaterials();
-}
-
-// ── 预览弹窗 ──
-async function openPreview(id) {
-    try {
-        const res = await fetch(`/materials/${id}`);
-        const data = await res.json();
-        previewId = id;
-        document.getElementById('previewTitle').textContent = data.title;
-        document.getElementById('previewBody').textContent = data.content;
-        document.getElementById('previewMeta').textContent = `${data.file_type} · ${data.word_count.toLocaleString()}字 · ${data.created_at.slice(0,10)}`;
-        document.getElementById('previewDelete').onclick = () => deleteFromPreview();
-        document.getElementById('previewModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    } catch (err) { showToast('加载失败'); }
-}
-
-function closePreview() {
-    document.getElementById('previewModal').style.display = 'none';
-    document.body.style.overflow = '';
-    previewId = null;
-}
-
-async function deleteFromPreview() {
-    if (!previewId) return;
-    if (!confirm('确定删除这条素材吗？')) return;
-    try {
-        await fetch(`/materials/${previewId}`, { method: 'DELETE' });
-        showToast('已删除');
-        closePreview();
-        loadMaterials();
-    } catch (err) { showToast('删除失败'); }
-}
-
-// ── 键盘操作 ──
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closePreview();
-});
-
-function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
-}
-function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
-
-loadMaterials();
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500); }
+function esc(s) { const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+function escAttr(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+init();
 </script>
 </body>
 </html>

@@ -14,6 +14,7 @@ from app.database import get_db
 from app.models.materials import Material
 from app.services.parser import parse_file, count_words
 from app.services.search import bm25_search, ranker
+from app.services.structurer import structure_pdf, structure_pdf_to_obsidian, is_markitdown_available
 from config import settings
 
 router = APIRouter(prefix="/materials", tags=["素材库"])
@@ -235,3 +236,58 @@ async def delete_material(material_id: str, db: AsyncSession = Depends(get_db)):
     await db.delete(material)
     await db.commit()
     return {"ok": True, "deleted": material.title}
+
+
+@router.get("/markitdown/status")
+async def markitdown_status():
+    """检查 markitdown 是否可用"""
+    return {"available": is_markitdown_available()}
+
+
+@router.post("/{material_id}/structure")
+async def structure_material(material_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    PDF 一键结构化 — 用 markitdown 转为 Markdown
+    结果存入 Obsidian Vault 或生成新的素材记录
+    """
+    result = await db.execute(select(Material).where(Material.id == material_id))
+    material = result.scalar_one_or_none()
+    if not material:
+        raise HTTPException(status_code=404, detail="素材不存在")
+
+    if material.file_type != ".pdf":
+        raise HTTPException(status_code=400, detail="仅支持 PDF 文件的结构化")
+
+    # 找到原始 PDF 文件
+    pdf_path = os.path.join(settings.UPLOAD_DIR, f"{material.id}{material.file_type}")
+    if not os.path.exists(pdf_path):
+        raise HTTPException(status_code=404, detail="PDF 文件已被删除")
+
+    # 执行结构化
+    struct_result = structure_pdf_to_obsidian(pdf_path)
+
+    if not struct_result.get("success"):
+        raise HTTPException(status_code=500, detail=struct_result.get("error", "结构化失败"))
+
+    # 将结构化的 .md 也作为素材入库
+    import uuid as _uuid
+    structured = Material(
+        id=str(_uuid.uuid4()),
+        title=f"{material.title}（结构化）",
+        file_name=struct_result.get("filename", ""),
+        file_type=".md",
+        content=struct_result.get("content", ""),
+        word_count=struct_result.get("word_count", 0),
+    )
+    db.add(structured)
+    await db.commit()
+    await db.refresh(structured)
+
+    return {
+        "success": True,
+        "original_id": material_id,
+        "structured_id": structured.id,
+        "output_path": struct_result.get("output_path", ""),
+        "word_count": struct_result.get("word_count", 0),
+        "preview": struct_result.get("content", "")[:300],
+    }

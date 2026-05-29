@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 # Obsidian Local REST API 默认端口
 OBSIDIAN_API = os.getenv("OBSIDIAN_API_URL", "http://127.0.0.1:27124")
 OBSIDIAN_VAULT = os.getenv("OBSIDIAN_VAULT", "")
+OBSIDIAN_API_KEY = os.getenv("OBSIDIAN_API_KEY", "")
 OBSIDIAN_ENABLED = bool(OBSIDIAN_VAULT.strip())
 
 
@@ -22,29 +23,58 @@ class ObsidianClient:
 
     def __init__(self, api_url: str = ""):
         self.api_url = api_url or OBSIDIAN_API
-        self.client = httpx.AsyncClient(timeout=30)
+        headers = {}
+        if OBSIDIAN_API_KEY:
+            headers["Authorization"] = OBSIDIAN_API_KEY
+        self.client = httpx.AsyncClient(timeout=30, headers=headers, verify=False)
 
     @property
     def enabled(self) -> bool:
         return OBSIDIAN_ENABLED
 
-    async def check_connection(self) -> dict:
-        """检查 Obsidian API 是否可用"""
-        try:
-            resp = await self.client.get(f"{self.api_url}/")
-            if resp.status_code == 200:
-                return {"connected": True, "message": "Obsidian API 已连接"}
-            return {"connected": False, "message": f"API 返回 {resp.status_code}"}
-        except Exception as e:
-            return {
-                "connected": False,
-                "message": f"无法连接 Obsidian API。请在 Obsidian 中安装 'Local REST API' 插件。错误: {str(e)[:100]}",
-                "setup": "Obsidian → 设置 → 第三方插件 → 社区插件市场 → 搜索 'Local REST API' → 安装并启用",
-            }
+    async def check_connection(self, retries: int = 2) -> dict:
+        """检查 Obsidian API 是否可用（带重试）"""
+        for attempt in range(retries + 1):
+            try:
+                resp = await self.client.get(f"{self.api_url}/")
+                if resp.status_code == 200:
+                    return {"connected": True, "message": "Obsidian API 已连接"}
+                if resp.status_code == 204 and attempt < retries:
+                    import asyncio
+                    await asyncio.sleep(1)
+                    continue
+                return {"connected": False, "message": f"API 返回 {resp.status_code}"}
+            except Exception as e:
+                if attempt < retries:
+                    import asyncio
+                    await asyncio.sleep(1)
+                    continue
+                return {
+                    "connected": False,
+                    "message": f"无法连接: {str(e)[:80]}",
+                    "setup": "Obsidian → 设置 → 第三方插件 → 搜索 'Local REST API' → 安装并启用",
+                }
 
     # ═══════════════════════════════════════════
     # Vault 索引
     # ═══════════════════════════════════════════
+
+    async def _api_get(self, url: str, retries: int = 2):
+        """带重试的API调用"""
+        for attempt in range(retries + 1):
+            try:
+                resp = await self.client.get(url)
+                if resp.status_code in (200, 204):
+                    return resp
+                if attempt < retries:
+                    import asyncio
+                    await asyncio.sleep(1)
+            except Exception:
+                if attempt >= retries:
+                    raise
+                import asyncio
+                await asyncio.sleep(1)
+        return None
 
     async def list_notes(self, folder: str = "") -> list:
         """列出 vault 中所有 .md 笔记"""
@@ -53,13 +83,47 @@ class ObsidianClient:
             return self._list_notes_fs(folder)
 
         try:
-            resp = await self.client.get(f"{self.api_url}/vault/", params={"path": folder})
-            if resp.status_code == 200:
-                files = resp.json()
-                return [f for f in files if f.endswith(".md")]
+            api_path = f"{self.api_url}/vault/"
+            if folder:
+                api_path = f"{self.api_url}/vault/{folder}"
+            resp = await self._api_get(api_path)
+            if resp and resp.status_code == 200:
+                data = resp.json()
+                files = data.get("files", data if isinstance(data, list) else [])
+                result = []
+                for f in files:
+                    if isinstance(f, str):
+                        if f.endswith(".md"):
+                            result.append(f"{folder}{f}" if folder else f)
+                        elif f.endswith("/"):
+                            sub = await self._list_api_recursive(f"{folder}{f}")
+                            result.extend(sub)
+                return result
+            elif resp.status_code == 204:
+                return []
         except Exception:
             pass
         return self._list_notes_fs(folder)
+
+    async def _list_api_recursive(self, folder: str) -> list:
+        """递归获取子目录"""
+        try:
+            resp = await self._api_get(f"{self.api_url}/vault/{folder}")
+            if resp.status_code == 200:
+                data = resp.json()
+                files = data.get("files", data if isinstance(data, list) else [])
+                result = []
+                for f in files:
+                    if isinstance(f, str):
+                        if f.endswith(".md"):
+                            result.append(f"{folder}{f}" if folder else f)
+                        elif f.endswith("/"):
+                            sub = await self._list_api_recursive(f"{folder}{f}")
+                            result.extend(sub)
+                return result
+        except Exception:
+            pass
+        return []
 
     def _list_notes_fs(self, folder: str = "") -> list:
         """文件系统降级方案"""
@@ -72,15 +136,20 @@ class ObsidianClient:
     async def get_note(self, path: str) -> dict:
         """读取单篇笔记（含 Frontmatter 解析）"""
         try:
+            content = ""
             if self.enabled:
-                resp = await self.client.get(f"{self.api_url}/vault/{path}")
+                resp = await self._api_get(f"{self.api_url}/vault/{path}")
                 if resp.status_code == 200:
-                    content = resp.text
-                else:
-                    content = ""
-            else:
+                    ct = resp.headers.get("content-type", "")
+                    if "json" in ct:
+                        data = resp.json()
+                        content = data.get("content", "")
+                    else:
+                        content = resp.text
+            if not content:
                 full_path = os.path.join(OBSIDIAN_VAULT, path)
-                content = open(full_path, encoding="utf-8").read() if os.path.exists(full_path) else ""
+                if os.path.exists(full_path):
+                    content = open(full_path, encoding="utf-8").read()
         except Exception:
             return {"path": path, "title": path, "content": "", "tags": [], "error": "读取失败"}
 
@@ -108,7 +177,7 @@ class ObsidianClient:
                     content=content,
                     headers={"Content-Type": "text/markdown"},
                 )
-                if resp.status_code in (200, 201):
+                if resp.status_code in (200, 201, 204):
                     return {"created": True, "path": path}
                 return {"created": False, "error": f"API 返回 {resp.status_code}: {resp.text[:200]}"}
 

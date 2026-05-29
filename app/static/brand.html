@@ -8,9 +8,10 @@
         :root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.08); }
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-        .header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:20px; text-align:center; }
-        .nav { display:flex; gap:8px; justify-content:center; padding:12px; background:#fff; border-bottom:1px solid var(--border); }
-        .nav a { text-decoration:none; color:var(--text); padding:6px 16px; border-radius:16px; font-size:13px; border:1px solid var(--border); }
+        .header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:14px 20px; text-align:center; }
+        .header h1 { font-size:17px; font-weight:700; }
+        .nav { display:flex; gap:3px; justify-content:center; padding:6px 8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+        .nav a { text-decoration:none; color:var(--text); padding:3px 9px; border-radius:11px; font-size:11px; border:1px solid var(--border); white-space:nowrap; transition:all .15s; }
         .nav a:hover { background:var(--primary); color:#fff; }
         .container { max-width:700px; margin:0 auto; padding:24px 16px; }
         .card { background:var(--card); border-radius:12px; padding:24px; margin-bottom:20px; box-shadow:var(--shadow); }
@@ -32,7 +33,7 @@
     </div>
     <div class="nav">
         <a href="/">🏠 首页</a>
-        <a href="/materials/page">📚 素材库</a>
+        <a href="/materials/page">💎 知识库</a>
         <a href="/brand/page" class="active">👤 人设</a>
         <a href="/topics/page">💡 选题</a>
         <a href="/contents/page">✍️ 生成</a>
@@ -40,7 +41,6 @@
         <a href="/comments/page">💬 评论</a>
         <a href="/analytics/page">📊 看板</a>
     <a href="/xhs/page">🔗 XHS</a>
-    <a href="/obsidian/page">💎 Obsidian</a>
     </div>
     <div class="container">
         <div class="card">
@@ -66,6 +66,11 @@
             <textarea id="taboo" placeholder="一行一个，例：&#10;绝对&#10;第一&#10;100%有效&#10;最&#10;政治敏感话题"></textarea>
             <div class="hint">这些词或话题 AI 会避免使用（小红书广告法合规）</div>
 
+            <label>🎨 视觉风格矩阵</label>
+            <div class="hint">为不同内容类型预设封面风格，生成时自动匹配。可直接修改。</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;" id="styleGrid"></div>
+            <style>.style-box{background:#fff;border:1px solid #eee;border-radius:8px;padding:8px;}</style>
+
             <button class="btn-primary" onclick="saveProfile()">💾 保存人设</button>
             <div class="saved-msg" id="savedMsg">✅ 保存成功！</div>
         </div>
@@ -73,6 +78,40 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        const defaultStyles = {
+            '干货教程型': {style:'手绘笔记风',bg:'#FDF6EC',main:'#D97706'},
+            '洞察观点型': {style:'暗金海报风',bg:'#1A1A2E',main:'#E2B714'},
+            '清单合集型': {style:'极简信息图风',bg:'#F5F5F5',main:'#4A90D9'},
+            '案例拆解型': {style:'杂志纪实风',bg:'#FAFAFA',main:'#333333'},
+        };
+        let styleData = null;
+
+        function renderStyles() {
+            if (!styleData) styleData = {};
+            const grid = document.getElementById('styleGrid');
+            if (!grid) return;
+            var types = Object.keys(styleData);
+            if (types.length === 0) { grid.innerHTML = '<div style="color:#999;font-size:12px;">加载中...</div>'; return; }
+            var html = '';
+            for (var i = 0; i < types.length; i++) {
+                var type = types[i], s = styleData[type] || {};
+                html += '<div style="background:#fff;border:1px solid #eee;border-radius:8px;padding:8px;">';
+                html += '<div style="font-size:12px;font-weight:700;margin-bottom:4px;">' + type + '</div>';
+                html += '<input value="' + (s.style||'').replace(/"/g,'&quot;') + '" placeholder="风格名称" style="width:100%;padding:4px 6px;font-size:11px;margin-bottom:3px;" onchange="updateStyle(\''+type+'\',\'style\',this.value)">';
+                html += '<div style="display:flex;gap:4px;align-items:center;">';
+                html += '<input type="color" value="'+(s.bg||'#fff')+'" style="width:24px;height:24px;border:none;padding:0;" onchange="updateStyle(\''+type+'\',\'bg\',this.value)">';
+                html += '<span style="font-size:10px;color:#999;">底色</span>';
+                html += '<input type="color" value="'+(s.main||'#333')+'" style="width:24px;height:24px;border:none;padding:0;margin-left:4px;" onchange="updateStyle(\''+type+'\',\'main\',this.value)">';
+                html += '<span style="font-size:10px;color:#999;">主色</span>';
+                html += '</div></div>';
+            }
+            grid.innerHTML = html;
+        }
+
+        function updateStyle(type, key, value) {
+            if (styleData && styleData[type]) styleData[type][key] = value;
+        }
+
         async function loadProfile() {
             try {
                 const res = await fetch('/brand/profile');
@@ -83,7 +122,13 @@
                     document.getElementById('tone').value = data.tone;
                     document.getElementById('taboo').value = data.taboo;
                 }
-            } catch (err) { /* 加载失败就用空表单 */ }
+                if (data.style_matrix) {
+                    try { styleData = JSON.parse(data.style_matrix); } catch(e) { styleData = {...defaultStyles}; }
+                } else {
+                    styleData = {...defaultStyles};
+                }
+                renderStyles();
+            } catch (err) { styleData = {...defaultStyles}; renderStyles(); }
         }
 
         async function saveProfile() {
@@ -92,6 +137,7 @@
                 audience: document.getElementById('audience').value,
                 tone: document.getElementById('tone').value,
                 taboo: document.getElementById('taboo').value,
+                style_matrix: JSON.stringify(styleData),
             };
             // 如果之前有保存过的 id，带上用来更新
             try {

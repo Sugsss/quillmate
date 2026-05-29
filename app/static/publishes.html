@@ -8,10 +8,10 @@
 :root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.08); --green: #38a169; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:18px; text-align:center; }
-.header h1 { font-size:18px; }
-.nav { display:flex; gap:6px; justify-content:center; padding:10px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
-.nav a { text-decoration:none; color:var(--text); padding:5px 12px; border-radius:14px; font-size:12px; border:1px solid var(--border); }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:14px 20px; text-align:center; }
+.header h1 { font-size:17px; font-weight:700; }
+.nav { display:flex; gap:3px; justify-content:center; padding:6px 8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:3px 9px; border-radius:11px; font-size:11px; border:1px solid var(--border); white-space:nowrap; transition:all .15s; }
 .nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
 .container { max-width:900px; margin:0 auto; padding:20px 16px; }
 .card { background:var(--card); border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:var(--shadow); }
@@ -42,7 +42,7 @@ td { padding:8px; border-bottom:1px solid #f5f5f5; }
 <div class="header"><h1>📤 发布管理</h1></div>
 <div class="nav">
     <a href="/">🏠 首页</a>
-    <a href="/materials/page">📚 素材库</a>
+    <a href="/materials/page">💎 知识库</a>
     <a href="/brand/page">👤 人设</a>
     <a href="/topics/page">💡 选题</a>
     <a href="/contents/page">✍️ 生成</a>
@@ -50,7 +50,6 @@ td { padding:8px; border-bottom:1px solid #f5f5f5; }
     <a href="/comments/page">💬 评论</a>
     <a href="/analytics/page">📊 看板</a>
     <a href="/xhs/page">🔗 XHS</a>
-    <a href="/obsidian/page">💎 Obsidian</a>
 </div>
 <div class="container">
     <!-- 待发布内容（从URL参数或手动选择） -->

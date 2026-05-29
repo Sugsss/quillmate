@@ -8,11 +8,10 @@
 :root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.08); --green: #38a169; --blue: #3182ce; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:28px 20px; text-align:center; }
-.header h1 { font-size:24px; font-weight:700; }
-.header p { opacity:0.85; margin-top:6px; font-size:14px; }
-.nav { display:flex; gap:6px; justify-content:center; padding:12px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
-.nav a { text-decoration:none; color:var(--text); padding:6px 14px; border-radius:16px; font-size:13px; border:1px solid var(--border); transition:all .2s; }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:14px 20px; text-align:center; }
+.header h1 { font-size:17px; font-weight:700; line-height:1.4; }
+.nav { display:flex; gap:3px; justify-content:center; padding:6px 8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:3px 9px; border-radius:11px; font-size:11px; border:1px solid var(--border); white-space:nowrap; transition:all .15s; }
 .nav a:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
 .nav a.active { background:var(--primary); color:#fff; }
 .container { max-width:960px; margin:0 auto; padding:24px 16px; }
@@ -46,12 +45,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 </head>
 <body>
 <div class="header">
-    <h1>📕 小红书AI内容管理系统</h1>
-    <p>素材库 → AI选题 → 双专家文案生成 → 发布追踪 · 全流程AI驱动</p>
+    <h1>📕 QuillMate <span style="font-size:11px;font-weight:400;opacity:0.8;margin-left:8px;">素材库 → AI选题 → 文案生成 → 发布追踪</span></h1>
 </div>
 <div class="nav">
     <a href="/" class="active">🏠 首页</a>
-    <a href="/materials/page">📚 素材库</a>
+    <a href="/materials/page">💎 知识库</a>
     <a href="/brand/page">👤 人设</a>
     <a href="/topics/page">💡 选题</a>
     <a href="/contents/page">✍️ 生成</a>
@@ -59,7 +57,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <a href="/comments/page">💬 评论</a>
     <a href="/analytics/page">📊 看板</a>
     <a href="/xhs/page">🔗 XHS</a>
-    <a href="/obsidian/page">💎 Obsidian</a>
 </div>
 
 <div class="container">

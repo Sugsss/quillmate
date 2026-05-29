@@ -47,10 +47,13 @@ C. 价值主张开头（直给型）：第一句直接说明这篇文章能帮�
 5. 结尾互动（1-2句）：引导评论/收藏，如「评论区说说你的经历」「收藏起来下次用」
 
 ### 配图设计提案
-为每篇文案生成配图设计方案（image_design字段），从以下3种风格中选择最合适的：
-- 手绘笔记风：暖色纸张质感+手写体标题+手绘小图标（适合教程、干货）
-- 暗金海报风：深色底+金色大字（适合观点、揭秘）
-- 极简信息图风：浅底+大数字+简洁层次（适合清单、对比）
+### 配图建议 — 两个独立字段，都必须填写 ⚠️
+
+image_suggestion（必填）：AI生图提示词，可直接复制到Midjourney/Stable Diffusion/DALL-E出图。包含主体、场景、光线、风格、画质关键词。用英文或中英混合更佳。
+✅ 正确示例：「Warm wooden desk, steaming coffee cup, open notebook with handwritten notes, a pen resting on the page, sticky note reading "允许自己说得普通", soft natural side lighting from window, shallow depth of field, cozy morning vibes, photorealistic, 4K, Fujifilm film simulation, vertical 3:4」
+❌ 错误示例：「手绘笔记风，暖色底」← 这是image_design！
+
+image_design（必填）：封面排版和字体方案。布局、字体、色彩搭配。不要写AI生图提示词——那是image_suggestion的事。
 
 ### 写作禁忌
 - 禁用"首先/其次/再次/最后"等作文体
@@ -77,9 +80,9 @@ C. 价值主张开头（直给型）：第一句直接说明这篇文章能帮�
   "title": "爆款标题（20字以内）",
   "body": "正文内容，用\\n\\n分段",
   "tags": ["标签1", "标签2", "标签3"],
-  "image_suggestion": "配图建议，具体说明拍什么",
+  "image_suggestion": "AI生图提示词，Midjourney/Stable Diffusion格式，主体+场景+光线+风格+画质",
   "image_design": {
-    "style": "手绘笔记风/暗金海报风/极简信息图风",
+    "style": "根据内容自由发挥的视觉风格",
     "bg_color": "#底色",
     "main_color": "#主色",
     "layout": "排版描述",

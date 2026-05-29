@@ -3,40 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>文案管理 - 小红书AI内容管理系统</title>
+<title>文案管理 - QuillMate</title>
 <style>
-:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.06); --green: #38a169; --blue: #3182ce; --orange: #dd6b20; }
+:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.06); --green: #38a169; --purple: #7c3aed; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:16px 20px; text-align:center; }
-.header h1 { font-size:18px; }
-.nav { display:flex; gap:4px; justify-content:center; padding:8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
-.nav a { text-decoration:none; color:var(--text); padding:4px 10px; border-radius:12px; font-size:11px; border:1px solid var(--border); white-space:nowrap; }
+.header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:14px 20px; text-align:center; }
+.header h1 { font-size:17px; font-weight:700; }
+.nav { display:flex; gap:3px; justify-content:center; padding:6px 8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.nav a { text-decoration:none; color:var(--text); padding:3px 9px; border-radius:11px; font-size:11px; border:1px solid var(--border); white-space:nowrap; transition:all .15s; }
 .nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
 .container { max-width:960px; margin:0 auto; padding:20px 16px; display:flex; gap:16px; }
 .sidebar { width:300px; flex-shrink:0; }
 .main { flex:1; min-width:0; }
-.card { background:var(--card); border-radius:12px; padding:18px; margin-bottom:14px; box-shadow:var(--shadow); }
-.btn { padding:7px 16px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; }
+.card { background:var(--card); border-radius:14px; padding:18px; margin-bottom:14px; box-shadow:var(--shadow); }
+.btn { padding:7px 16px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; }
 .btn-primary { background:var(--primary); color:#fff; }
-.btn-primary:hover { background:#e01e3a; }
-.btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+.btn-primary:disabled { opacity:0.5; }
 .btn-outline { background:none; border:1px solid #ddd; color:#666; font-size:12px; padding:5px 10px; }
-.btn-outline:hover { border-color:var(--primary); color:var(--primary); }
 select { width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; }
 select:focus { outline:none; border-color:var(--primary); }
-.content-item { padding:10px 12px; border-radius:8px; cursor:pointer; margin-bottom:4px; transition:.1s; border:1px solid transparent; }
+.content-item { padding:10px 12px; border-radius:8px; cursor:pointer; margin-bottom:4px; border:1px solid transparent; }
 .content-item:hover { background:#f9f9f9; }
 .content-item.active { border-color:var(--primary); background:#fff5f6; }
 .content-item .ctitle { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .content-item .cpreview { font-size:11px; color:#999; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .content-item .cmeta { font-size:10px; color:#bbb; margin-top:2px; }
-
-/* 过程可视化 */
 .process-panel { display:none; }
-.process-panel.active { display:block; }
+.process-panel.on { display:block; }
 .process-step { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid #f0f0f0; align-items:flex-start; }
-.process-step:last-child { border-bottom:none; }
 .step-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; background:#f0f0f0; transition:all .3s; }
 .step-icon.done { background:#e6ffed; }
 .step-icon.active { background:#fff0f3; animation:pulse 1.5s infinite; }
@@ -44,28 +39,19 @@ select:focus { outline:none; border-color:var(--primary); }
 .step-body { flex:1; min-width:0; }
 .step-title { font-size:13px; font-weight:600; margin-bottom:2px; }
 .step-detail { font-size:11px; color:#888; line-height:1.5; }
-.step-detail .highlight { color:var(--primary); font-weight:600; }
-
-/* 分析专家卡片 */
 .analysis-card { background:linear-gradient(135deg, #f0f4ff, #faf5ff); border-radius:10px; padding:14px; margin-top:10px; }
-.analysis-card .label { font-size:10px; color:var(--blue); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.analysis-card .label { font-size:10px; color:var(--purple); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
 .analysis-card .angle { font-size:13px; font-weight:600; margin-bottom:8px; color:#4a5568; }
 .analysis-card .points { display:flex; flex-wrap:wrap; gap:4px; }
 .analysis-card .point { background:#fff; border-radius:6px; padding:4px 8px; font-size:11px; color:#666; }
 .analysis-card .meta-row { display:flex; gap:16px; margin-top:8px; font-size:11px; color:#999; }
-
-/* 内容详情 */
 .detail-title { font-size:20px; font-weight:700; margin-bottom:12px; }
 .detail-body { font-size:14px; line-height:2; white-space:pre-wrap; background:#fafafa; border-radius:10px; padding:18px; margin-bottom:14px; }
 .detail-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
 .detail-tags span { background:#fff0f3; color:var(--primary); padding:3px 10px; border-radius:12px; font-size:12px; }
-.detail-image { font-size:13px; color:#666; background:#f0f4ff; padding:10px 14px; border-radius:8px; margin-bottom:12px; }
-
-/* 安全检测 */
 .safety-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
 .safety-ok { background:#e6ffed; color:var(--green); }
-.safety-warn { background:#fff3cd; color:var(--orange); }
-
+.safety-warn { background:#fff3cd; color:#dd6b20; }
 .empty-state { text-align:center; padding:40px 20px; color:#ccc; }
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 22px; border-radius:8px; font-size:13px; z-index:2000; opacity:0; transition:opacity .3s; pointer-events:none; }
 .toast.show { opacity:1; }
@@ -76,7 +62,7 @@ select:focus { outline:none; border-color:var(--primary); }
 <div class="header"><h1>✍️ 文案管理</h1></div>
 <div class="nav">
     <a href="/">🏠 首页</a>
-    <a href="/materials/page">📚 素材库</a>
+    <a href="/materials/page">💎 知识库</a>
     <a href="/brand/page">👤 人设</a>
     <a href="/topics/page">💡 选题</a>
     <a href="/contents/page" class="active">✍️ 生成</a>
@@ -84,25 +70,30 @@ select:focus { outline:none; border-color:var(--primary); }
     <a href="/comments/page">💬 评论</a>
     <a href="/analytics/page">📊 看板</a>
     <a href="/xhs/page">🔗 XHS</a>
-    <a href="/obsidian/page">💎 Obsidian</a>
 </div>
 <div class="container">
-    <!-- 左侧 -->
     <div class="sidebar">
         <div class="card">
             <select id="topicSelect"><option value="">-- 选选题开始生成 --</option></select>
             <button class="btn btn-primary" id="btnGenerate" onclick="generate()" style="width:100%;margin-top:8px;">🎨 生成文案</button>
             <div id="genStatus" style="font-size:12px;color:#666;margin-top:6px;"></div>
+            <details style="margin-top:10px;font-size:12px;" id="promptConfig">
+                <summary style="cursor:pointer;color:var(--purple);font-weight:600;">🔧 专家提示词</summary>
+                <div style="margin-top:8px;">
+                    <label style="font-size:10px;color:#999;">🔍 分析专家</label>
+                    <textarea id="analysisPrompt" oninput="savePrompts()" style="width:100%;min-height:60px;font-size:10px;font-family:monospace;padding:6px;border:1px solid #ddd;border-radius:6px;resize:vertical;">你是一名小红书内容分析专家。分析素材和选题，提取关键信息：核心卖点、读者痛点、情感共鸣点、差异化角度、结构建议。返回JSON。</textarea>
+                    <label style="font-size:10px;color:#999;margin-top:6px;display:block;">✍️ 创作专家</label>
+                    <textarea id="creationPrompt" oninput="savePrompts()" style="width:100%;min-height:60px;font-size:10px;font-family:monospace;padding:6px;border:1px solid #ddd;border-radius:6px;resize:vertical;">你是一名资深小红书博主，写真实有温度的种草文案。禁用：首先其次、yyds、绝绝子。返回JSON格式：{"title":"标题","body":"正文","tags":["标签"],"image_suggestion":"AI生图提示词, Midjourney格式, 主体+场景+光线+风格+画质","image_design":{"style":"风格","bg_color":"#色","main_color":"#色","layout":"排版","typography":"字体"}}</textarea>
+                </div>
+            </details>
         </div>
         <div class="card">
-            <div style="font-weight:600;font-size:14px;margin-bottom:8px;">📋 历史文案 <span style="font-size:11px;color:#999;font-weight:400;" id="historyCount"></span></div>
+            <div style="font-weight:600;font-size:14px;margin-bottom:8px;">📋 历史文案 <span id="historyCount" style="font-size:11px;color:#999;font-weight:400;"></span></div>
             <div id="contentList"><div style="text-align:center;padding:20px;color:#999;">加载中...</div></div>
         </div>
     </div>
 
-    <!-- 右侧 -->
     <div class="main">
-        <!-- 空状态 -->
         <div class="card" id="emptyCard">
             <div class="empty-state">
                 <div style="font-size:48px;">🤖</div>
@@ -112,52 +103,21 @@ select:focus { outline:none; border-color:var(--primary); }
             </div>
         </div>
 
-        <!-- 过程可视化面板 -->
         <div class="card process-panel" id="processPanel">
             <h2 style="font-size:16px;margin-bottom:14px;">🤖 双专家生成过程</h2>
-
-            <div class="process-step" id="step1">
-                <div class="step-icon">📖</div>
-                <div class="step-body">
-                    <div class="step-title">读取素材库</div>
-                    <div class="step-detail" id="step1Detail">等待中...</div>
-                </div>
-            </div>
-
-            <div class="process-step" id="step2">
-                <div class="step-icon">🔍</div>
-                <div class="step-body">
-                    <div class="step-title">分析专家 · 解读素材</div>
-                    <div class="step-detail" id="step2Detail">等待中...</div>
-                    <div id="analysisResult"></div>
-                </div>
-            </div>
-
-            <div class="process-step" id="step3">
-                <div class="step-icon">✍️</div>
-                <div class="step-body">
-                    <div class="step-title">创作专家 · 撰写文案</div>
-                    <div class="step-detail" id="step3Detail">等待中...</div>
-                </div>
-            </div>
-
-            <div class="process-step" id="step4">
-                <div class="step-icon">🛡️</div>
-                <div class="step-body">
-                    <div class="step-title">安全检测</div>
-                    <div class="step-detail" id="step4Detail">等待中...</div>
-                </div>
-            </div>
+            <div class="process-step" id="step1"><div class="step-icon">📖</div><div class="step-body"><div class="step-title">读取素材库</div><div class="step-detail" id="step1Detail">等待中...</div></div></div>
+            <div class="process-step" id="step2"><div class="step-icon">🔍</div><div class="step-body"><div class="step-title">分析专家 · 解读素材</div><div class="step-detail" id="step2Detail">等待中...</div><div id="analysisResult"></div></div></div>
+            <div class="process-step" id="step3"><div class="step-icon">✍️</div><div class="step-body"><div class="step-title">创作专家 · 撰写文案</div><div class="step-detail" id="step3Detail">等待中...</div></div></div>
+            <div class="process-step" id="step4"><div class="step-icon">🛡️</div><div class="step-body"><div class="step-title">安全检测</div><div class="step-detail" id="step4Detail">等待中...</div></div></div>
         </div>
 
-        <!-- 生成结果 -->
         <div class="card" id="resultCard" style="display:none;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <h2 style="font-size:16px;">📝 生成结果</h2>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <button class="btn btn-outline" onclick="copyDetail()" style="font-size:11px;">📋 复制全文</button>
-                    <button class="btn btn-outline" id="detailExport" style="font-size:11px;">📤 去发布</button>
-                    <button class="btn btn-outline" id="detailProofread" onclick="proofreadCurrent()" style="font-size:11px;">🔍 降AI味审校</button>
+                    <button class="btn btn-outline btn-sm" onclick="copyDetail()">📋 复制全文</button>
+                    <button class="btn btn-outline btn-sm" id="detailExport">📤 去发布</button>
+                    <button class="btn btn-outline btn-sm" id="detailProofread" onclick="proofreadCurrent()">🔍 降AI味审校</button>
                     <span id="proofreadStatus" style="font-size:11px;color:#999;"></span>
                 </div>
             </div>
@@ -172,264 +132,227 @@ select:focus { outline:none; border-color:var(--primary); }
 <div class="toast" id="toast"></div>
 
 <script>
-let currentContentId = null;
+var currentContentId = null;
+window._imgPrompt = '';
 
-async function init() {
+function $(id){ return document.getElementById(id); }
+
+function loadPrompts(){
     try {
-        const res = await fetch('/topics/list');
-        const topics = await res.json();
-        const sel = document.getElementById('topicSelect');
-        topics.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.id;
-            opt.textContent = t.title;
-            sel.appendChild(opt);
-        });
-    } catch (err) { console.error(err); }
-    loadContentList();
+        var a = localStorage.getItem('quillmate_analysis');
+        var c = localStorage.getItem('quillmate_creation');
+        if(a) $('analysisPrompt').value = a;
+        if(c) $('creationPrompt').value = c;
+    } catch(e){}
 }
 
-async function loadContentList() {
+function savePrompts(){
+    try { localStorage.setItem('quillmate_analysis',$('analysisPrompt').value); } catch(e){}
+    try { localStorage.setItem('quillmate_creation',$('creationPrompt').value); } catch(e){}
+}
+
+async function loadTopics(){
     try {
-        const res = await fetch('/contents/list');
-        const data = await res.json();
-        document.getElementById('historyCount').textContent = `(${data.length})`;
-        const container = document.getElementById('contentList');
-        if (data.length === 0) {
-            container.innerHTML = '<div style="font-size:12px;color:#bbb;padding:10px;">暂无历史文案</div>';
-            return;
+        var r = await fetch('/topics/list');
+        var topics = await r.json();
+        var sel = $('topicSelect');
+        for(var i=0;i<topics.length;i++){
+            var o = document.createElement('option');
+            o.value = topics[i].id;
+            o.textContent = topics[i].title;
+            sel.appendChild(o);
         }
-        container.innerHTML = data.map(c => `
-            <div class="content-item${currentContentId===c.id?' active':''}" onclick="viewContent('${c.id}')">
-                <div class="ctitle">${esc(c.title)}</div>
-                <div class="cpreview">${esc(c.body_preview)}</div>
-                <div class="cmeta">${c.created_at.slice(0,10)} · ${c.tags.slice(0,3).map(t=>'#'+t).join(' ')}</div>
-            </div>
-        `).join('');
-    } catch (err) {
-        document.getElementById('contentList').innerHTML = '<div style="font-size:12px;color:#e53e3e;">加载失败</div>';
-    }
+    } catch(e){}
 }
 
-async function viewContent(id) {
+async function loadContentList(){
     try {
-        const res = await fetch(`/contents/${id}`);
-        const data = await res.json();
+        var r = await fetch('/contents/list');
+        var data = await r.json();
+        $('historyCount').textContent = '('+data.length+')';
+        var container = $('contentList');
+        if(!data.length){ container.innerHTML = '<div style="font-size:12px;color:#bbb;padding:10px;">暂无历史文案</div>'; return; }
+        var recent = data.slice(0,20);
+        var html = '';
+        for(var i=0;i<recent.length;i++){
+            var c = recent[i];
+            var active = currentContentId===c.id?' active':'';
+            html += '<div class="content-item'+active+'" onclick="viewContent(\''+c.id+'\')">';
+            html += '<div class="ctitle">'+esc(c.title)+'</div>';
+            html += '<div class="cpreview">'+esc(c.body_preview)+'</div>';
+            html += '<div class="cmeta">'+(c.created_at||'').slice(0,10)+' · '+(c.tags||[]).slice(0,3).map(function(t){return '#'+t;}).join(' ')+'</div>';
+            html += '</div>';
+        }
+        container.innerHTML = html;
+    } catch(e){ container.innerHTML = '<div style="font-size:12px;color:#e53e3e;">加载失败</div>'; }
+}
+
+async function viewContent(id){
+    try {
+        var r = await fetch('/contents/'+id);
+        var data = await r.json();
         currentContentId = id;
         showResult(data);
         loadContentList();
-    } catch (err) { showToast('加载详情失败'); }
+    } catch(e){ toast('加载详情失败'); }
 }
 
-function showResult(data) {
-    document.getElementById('emptyCard').style.display = 'none';
-    document.getElementById('processPanel').classList.remove('active');
-    document.getElementById('resultCard').style.display = 'block';
-    document.getElementById('detailTitle').textContent = data.title;
-    document.getElementById('detailBody').textContent = data.body;
-    document.getElementById('detailTags').innerHTML = data.tags.map(t => `<span>#${t}</span>`).join('');
-    // 配图设计方案
-    const design = data.image_design;
-    let imageHtml = '📷 ' + (data.image_suggestion || '无配图建议');
-    if (design && design.style) {
-        imageHtml = `<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
-            <div style="flex:1;min-width:200px;">
-                <div style="font-weight:600;font-size:13px;margin-bottom:4px;">🎨 ${esc(design.style)}</div>
-                <div style="font-size:11px;color:#666;line-height:1.6;">${esc(design.layout||'')}</div>
-            </div>
-            <div style="display:flex;gap:6px;align-items:center;">
-                <span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:${esc(design.bg_color||'#fff')};border:1px solid #ddd;" title="底色${esc(design.bg_color||'')}"></span>
-                <span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:${esc(design.main_color||'#333')};" title="主色${esc(design.main_color||'')}"></span>
-                <span style="font-size:10px;color:#999;">${esc(design.typography||'')}</span>
-            </div>
-        </div>`;
+function showResult(data){
+    $('emptyCard').style.display = 'none';
+    $('processPanel').classList.remove('on');
+    $('resultCard').style.display = 'block';
+    $('detailTitle').textContent = data.title;
+    $('detailBody').textContent = data.body;
+    $('detailTags').innerHTML = data.tags.map(function(t){return '<span>#'+t+'</span>';}).join('');
+    $('detailExport').onclick = function(){ window.open('/publishes/page?content_id='+data.id,'_blank'); };
+
+    // 生图提示词
+    window._imgPrompt = data.image_suggestion||'';
+    var imgHtml = '<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:600;color:#999;margin-bottom:4px;">🎨 生图提示词（可直接复制到AI生图工具）</div>';
+    imgHtml += '<div style="font-size:13px;color:#666;line-height:1.8;margin-bottom:6px;">'+esc(window._imgPrompt||'无')+'</div>';
+    imgHtml += '<button class="btn btn-outline btn-sm" onclick="copyImgPrompt()">📋 复制</button></div>';
+
+    // 视觉风格
+    var design = data.image_design||{};
+    if(design.style){
+        imgHtml += '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;margin-top:8px;">';
+        imgHtml += '<div style="flex:1;min-width:200px;">';
+        imgHtml += '<div style="font-weight:600;font-size:13px;margin-bottom:4px;">🎨 '+esc(design.style)+'</div>';
+        imgHtml += '<div style="font-size:11px;color:#666;line-height:1.6;">'+esc(design.layout||'')+'</div>';
+        imgHtml += '</div><div style="display:flex;gap:6px;align-items:center;">';
+        imgHtml += '<span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:'+esc(design.bg_color||'#fff')+';border:1px solid #ddd;"></span>';
+        imgHtml += '<span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:'+esc(design.main_color||'#333')+';"></span>';
+        imgHtml += '<span style="font-size:10px;color:#999;">'+esc(design.typography||'')+'</span>';
+        imgHtml += '</div></div>';
     }
-    document.getElementById('detailImage').innerHTML = imageHtml;
-    document.getElementById('detailExport').onclick = () => window.open(`/publishes/page?content_id=${data.id}`, '_blank');
+    $('detailImage').innerHTML = imgHtml;
 }
 
-async function generate() {
-    const topicId = document.getElementById('topicSelect').value;
-    if (!topicId) { showToast('请先选择一个选题'); return; }
+function copyImgPrompt(){
+    if(!window._imgPrompt){ toast('无生图提示词'); return; }
+    navigator.clipboard.writeText(window._imgPrompt).then(function(){ toast('✅ 已复制'); });
+}
 
-    const btn = document.getElementById('btnGenerate');
-    btn.disabled = true;
-    btn.textContent = '⏳ 双专家工作中...';
+async function generate(){
+    var topicId = $('topicSelect').value;
+    if(!topicId){ toast('请先选择一个选题'); return; }
 
-    // 显示过程面板
-    document.getElementById('emptyCard').style.display = 'none';
-    document.getElementById('resultCard').style.display = 'none';
-    const panel = document.getElementById('processPanel');
-    panel.classList.add('active');
-
-    // 重置步骤
+    var btn = $('btnGenerate');
+    btn.disabled = true; btn.textContent = '⏳ 双专家工作中...';
+    $('emptyCard').style.display = 'none';
+    $('resultCard').style.display = 'none';
+    var panel = $('processPanel');
+    panel.classList.add('on');
     resetSteps();
 
-    // ── Step 1: 读取素材库 ──
-    activateStep('step1', '正在检索关联素材...');
-    await sleep(600);
+    activateStep('step1','正在检索关联素材...');
+    await sleep(400);
 
     try {
-        const res = await fetch('/contents/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ topic_id: topicId }),
+        var res = await fetch('/contents/generate',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                topic_id:topicId,
+                analysis_prompt:$('analysisPrompt').value,
+                creation_prompt:$('creationPrompt').value
+            })
         });
-        const data = await res.json();
+        var data = await res.json();
+        if(!res.ok){ $('step1Detail').textContent = '❌ '+(data.detail||'生成失败'); return; }
 
-        if (!res.ok) {
-            document.getElementById('step1Detail').textContent = '❌ ' + (data.detail || '生成失败');
-            return;
-        }
-
-        // Step 1 完成
-        completeStep('step1', '已读取素材库内容');
-        await sleep(400);
-
-        // ── Step 2: 分析专家 ──
-        activateStep('step2', '分析专家正在解读素材...');
-        await sleep(800);
-
-        const analysis = data.analysis;
-        completeStep('step2',
-            `<span class="highlight">角度：</span>${esc(analysis.angle)}`,
-        );
-
-        // 渲染分析专家卡片
-        const analysisHtml = `
-            <div class="analysis-card">
-                <div class="label">🔍 分析专家输出</div>
-                <div class="angle">💡 ${esc(analysis.angle)}</div>
-                <div class="points">${(analysis.key_points||[]).map(p => `<span class="point">${esc(p)}</span>`).join('')}</div>
-                <div class="meta-row">
-                    <span>📐 结构：${esc(analysis.structure||'')}</span>
-                    <span>🎭 基调：${esc(analysis.emotion||'')}</span>
-                </div>
-            </div>`;
-        document.getElementById('analysisResult').innerHTML = analysisHtml;
-        await sleep(400);
-
-        // ── Step 3: 创作专家 ──
-        activateStep('step3', '创作专家正在撰写小红书文案...');
-        await sleep(1000);
-        completeStep('step3',
-            `<span class="highlight">标题：</span>${esc(data.title)}<br>
-             <span style="font-size:11px;color:#999;">正文 ${data.body.length} 字 · ${data.tags.length} 个标签</span>`
-        );
+        completeStep('step1','已读取素材库内容');
         await sleep(300);
 
-        // ── Step 4: 安全检测 ──
-        activateStep('step4', '检测敏感词和合规性...');
-        await sleep(500);
+        activateStep('step2','分析专家正在解读素材...');
+        await sleep(600);
+        var analysis = data.analysis;
+        completeStep('step2','<b>角度：</b>'+esc(analysis.angle)+'<br><details style="font-size:10px;margin-top:4px;"><summary style="color:#999;cursor:pointer;">📝 提示词</summary><div style="background:#f5f5f5;padding:6px;border-radius:4px;margin-top:4px;max-height:60px;overflow-y:auto;">'+esc($('analysisPrompt').value)+'</div></details>');
 
-        const safety = data.safety;
-        if (safety.has_issue) {
-            completeStep('step4', `⚠️ 发现敏感表达：${safety.suggestion}`);
+        var analysisHtml = '<div class="analysis-card"><div class="label">🔍 分析专家输出</div><div class="angle">💡 '+esc(analysis.angle)+'</div><div class="points">';
+        (analysis.key_points||[]).forEach(function(p){ analysisHtml += '<span class="point">'+esc(p)+'</span>'; });
+        analysisHtml += '</div><div class="meta-row"><span>📐 '+esc(analysis.structure||'')+'</span><span>🎭 '+esc(analysis.emotion||'')+'</span></div></div>';
+        $('analysisResult').innerHTML = analysisHtml;
+        await sleep(300);
+
+        activateStep('step3','创作专家正在撰写小红书文案...');
+        await sleep(800);
+        completeStep('step3','<b>标题：</b>'+esc(data.title)+'<br><span style="font-size:11px;color:#999;">正文 '+data.body.length+' 字 · '+data.tags.length+' 个标签</span><br><details style="font-size:10px;margin-top:4px;"><summary style="color:#999;cursor:pointer;">📝 提示词</summary><div style="background:#f5f5f5;padding:6px;border-radius:4px;margin-top:4px;max-height:60px;overflow-y:auto;">'+esc($('creationPrompt').value)+'</div></details>');
+        await sleep(200);
+
+        activateStep('step4','检测敏感词和合规性...');
+        await sleep(300);
+        var safety = data.safety;
+        if(safety.has_issue){
+            completeStep('step4','⚠️ '+safety.suggestion);
         } else {
-            completeStep('step4', '✅ 内容安全检测通过');
+            completeStep('step4','✅ 内容安全检测通过');
         }
-        await sleep(400);
+        await sleep(300);
 
-        // 显示结果
         currentContentId = data.id;
         showResult(data);
-
-        // 安全徽章
-        const badge = safety.has_issue
-            ? `<span class="safety-badge safety-warn">⚠️ ${safety.suggestion}</span>`
-            : '<span class="safety-badge safety-ok">✅ 安全检测通过</span>';
-        document.getElementById('safetyBadge').innerHTML = badge;
-
-        showToast('🎉 文案生成完成！');
+        $('safetyBadge').innerHTML = safety.has_issue ? '<span class="safety-badge safety-warn">⚠️ '+safety.suggestion+'</span>' : '<span class="safety-badge safety-ok">✅ 安全检测通过</span>';
+        toast('🎉 文案生成完成！');
         loadContentList();
-
-    } catch (err) {
-        console.error(err);
-        document.getElementById('step1Detail').textContent = '❌ 网络错误';
+    } catch(e){
+        $('step1Detail').textContent = '❌ 网络错误';
     }
-    btn.disabled = false;
-    btn.textContent = '🎨 生成文案';
+    btn.disabled = false; btn.textContent = '🎨 生成文案';
 }
 
-function resetSteps() {
-    ['step1','step2','step3','step4'].forEach(id => {
-        const el = document.getElementById(id);
-        el.querySelector('.step-icon').className = 'step-icon';
-        document.getElementById(id+'Detail').textContent = '等待中...';
+function resetSteps(){
+    ['step1','step2','step3','step4'].forEach(function(id){
+        $(id).querySelector('.step-icon').className = 'step-icon';
+        $(id+'Detail').textContent = '等待中...';
     });
-    document.getElementById('analysisResult').innerHTML = '';
+    $('analysisResult').innerHTML = '';
 }
 
-function activateStep(id, msg) {
-    const el = document.getElementById(id);
-    el.querySelector('.step-icon').classList.add('active');
-    document.getElementById(id+'Detail').textContent = msg;
+function activateStep(id,msg){
+    $(id).querySelector('.step-icon').classList.add('active');
+    $(id+'Detail').textContent = msg;
 }
 
-function completeStep(id, msg) {
-    const el = document.getElementById(id);
-    el.querySelector('.step-icon').className = 'step-icon done';
-    document.getElementById(id+'Detail').innerHTML = msg;
+function completeStep(id,msg){
+    $(id).querySelector('.step-icon').className = 'step-icon done';
+    $(id+'Detail').innerHTML = msg;
 }
 
-async function proofreadCurrent() {
-    if (!currentContentId) return;
-    const btn = document.getElementById('detailProofread');
-    const status = document.getElementById('proofreadStatus');
+async function proofreadCurrent(){
+    if(!currentContentId) return;
+    var btn = $('detailProofread');
+    var status = $('proofreadStatus');
     btn.disabled = true; btn.textContent = '⏳ 审校中...';
     status.textContent = '第一遍：内容审校...';
-
-    // 动画阶段提示
-    const t1 = setTimeout(() => { status.textContent = '第一遍：内容审校...'; }, 500);
-    const t2 = setTimeout(() => { status.textContent = '第二遍：降AI味...'; }, 25000);
-    const t3 = setTimeout(() => { status.textContent = '第三遍：节奏打磨...'; }, 60000);
-
+    setTimeout(function(){ status.textContent = '第二遍：降AI味...'; },15000);
+    setTimeout(function(){ status.textContent = '第三遍：节奏打磨...'; },40000);
     try {
-        const res = await fetch(`/contents/${currentContentId}/proofread`, { method: 'POST' });
-        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
-        const data = await res.json();
-        if (res.ok) {
-            const pr = data.proofread;
-            document.getElementById('detailBody').textContent = pr.final_body;
-            // 汇总每遍状态
-            const parts = [];
-            if (pr.pass1.summary && !pr.pass1.summary.includes('跳过') && !pr.pass1.summary.includes('超时')) parts.push('P1✅');
-            else if (pr.pass1.summary) parts.push('P1⏭');
-            if (pr.pass2.changes && pr.pass2.changes.length > 0) parts.push('P2✅');
-            else if (pr.pass2.error) parts.push('P2⏭');
-            if (pr.pass3.changes && pr.pass3.changes.length > 0) parts.push('P3✅');
-            else if (pr.pass3.error) parts.push('P3⏭');
-            status.textContent = `✅ 共优化 ${pr.improvement_count} 处 (${parts.join(' ')})`;
-            showToast('审校完成！');
-            loadContentList();
-        } else {
-            status.textContent = '❌ 审校失败，请重试';
-        }
-    } catch (err) {
-        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
-        status.textContent = '❌ 请求超时，请重试';
-    }
+        var r = await fetch('/contents/'+currentContentId+'/proofread',{method:'POST'});
+        var d = await r.json();
+        if(r.ok){
+            $('detailBody').textContent = d.proofread.final_body;
+            status.textContent = '✅ 共优化 '+d.proofread.improvement_count+' 处';
+            toast('审校完成！');
+        } else { status.textContent = '❌ 失败'; }
+    } catch(e){ status.textContent = '❌ 超时'; }
     btn.disabled = false; btn.textContent = '🔍 降AI味审校';
 }
 
-function copyDetail() {
-    const t = document.getElementById('detailTitle').textContent;
-    const b = document.getElementById('detailBody').textContent;
-    const tags = Array.from(document.querySelectorAll('#detailTags span')).map(s=>s.textContent).join(' ');
-    navigator.clipboard.writeText(`${t}\n\n${b}\n\n${tags}`).then(
-        ()=>showToast('✅ 已复制'), ()=>showToast('复制失败')
-    );
+function copyDetail(){
+    var t = $('detailTitle').textContent;
+    var b = $('detailBody').textContent;
+    var tags = Array.from(document.querySelectorAll('#detailTags span')).map(function(s){return s.textContent;}).join(' ');
+    navigator.clipboard.writeText(t+'\n\n'+b+'\n\n'+tags).then(function(){ toast('✅ 已复制'); });
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
-}
-function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+function toast(msg){ var t=$('toast'); t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500); }
+function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
 
-init();
+loadPrompts();
+loadTopics();
+loadContentList();
 </script>
 </body>
 </html>

@@ -88,6 +88,8 @@ async def generate_content(data: dict, db: AsyncSession = Depends(get_db)):
     topic_id = data.get("topic_id", "")
     material_ids = data.get("material_ids", [])
     platform = data.get("platform", "xiaohongshu")
+    custom_analysis_prompt = data.get("analysis_prompt", "")
+    custom_creation_prompt = data.get("creation_prompt", "")
 
     # 1. 获取选题
     result = await db.execute(select(Topic).where(Topic.id == topic_id))
@@ -124,11 +126,24 @@ async def generate_content(data: dict, db: AsyncSession = Depends(get_db)):
     audience = brand.audience if brand else topic.audience
     tone = brand.tone if brand else topic.tone
     taboo = brand.taboo if brand else ""
+    style_matrix = brand.style_matrix if brand else ""
+
+    # 匹配视觉风格
+    matched_style = {}
+    if style_matrix and topic.topic_type:
+        try:
+            sm = json.loads(style_matrix)
+            matched_style = sm.get(topic.topic_type, {})
+        except Exception:
+            pass
 
     # ── 第一阶段：分析专家 ──
+    analysis_system = ANALYSIS_SYSTEM
+    if custom_analysis_prompt.strip():
+        analysis_system = custom_analysis_prompt.strip() + "\n\n返回 JSON：{\"angle\":\"角度\",\"key_points\":[\"要点\"],\"structure\":\"结构\",\"emotion\":\"基调\"}"
     analysis_input = build_analysis_prompt(materials_content, topic.title, topic.reason)
     try:
-        analysis_raw = await call_llm(ANALYSIS_SYSTEM, analysis_input, temperature=0.5)
+        analysis_raw = await call_llm(analysis_system, analysis_input, temperature=0.5)
         # 解析分析结果
         cleaned = analysis_raw.strip()
         if cleaned.startswith("```"):
@@ -154,21 +169,36 @@ async def generate_content(data: dict, db: AsyncSession = Depends(get_db)):
         tone=tone,
         taboo=taboo,
     )
+    # 注入品牌视觉风格
+    if matched_style:
+        style_hint = f"\n\n## 品牌视觉风格（优先使用）\n风格：{matched_style.get('style','')}\n底色：{matched_style.get('bg','')}\n主色：{matched_style.get('main','')}"
+        sys_prompt += style_hint
+    if custom_creation_prompt.strip():
+        sys_prompt = custom_creation_prompt.strip() + "\n\n## 输出格式\n严格返回 JSON，不要 markdown 代码块：\n{\"title\":\"标题\",\"body\":\"正文\",\"tags\":[\"标签\"],\"image_suggestion\":\"AI生图提示词，Midjourney/Stable Diffusion格式\"",\"image_design\":{\"style\":\"自由发挥\",\"bg_color\":\"#色\",\"main_color\":\"#色\",\"layout\":\"排版\",\"typography\":\"字体\"}}"
 
     try:
         content_raw = await call_llm(sys_prompt, user_prompt, temperature=0.85, max_tokens=3000)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI 生成失败: {str(e)}")
 
-    # 解析生成结果
+    # 解析生成结果（增强容错）
     try:
         cleaned = content_raw.strip()
-        if cleaned.startswith("```"):
-            cleaned = cleaned.split("\n", 1)[1]
-            if cleaned.endswith("```"):
-                cleaned = cleaned[:-3]
+        # 尝试从 markdown 代码块中提取 JSON
+        if "```json" in cleaned:
+            cleaned = cleaned.split("```json", 1)[1].split("```", 1)[0].strip()
+        elif "```" in cleaned:
+            parts = cleaned.split("```")
+            if len(parts) >= 2:
+                cleaned = parts[1].strip()
+        # 尝试找到第一个 { 到最后一个 }
+        if not cleaned.startswith("{"):
+            start = cleaned.find("{")
+            end = cleaned.rfind("}")
+            if start >= 0 and end > start:
+                cleaned = cleaned[start:end+1]
         content_data = json.loads(cleaned)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, IndexError):
         raise HTTPException(status_code=500, detail=f"AI 返回格式异常: {content_raw[:300]}")
 
     # ── 敏感词检测 ──

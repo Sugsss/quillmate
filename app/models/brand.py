@@ -21,6 +21,8 @@ class BrandProfile(Base):
     tone: Mapped[str] = mapped_column(String(500), default="", comment="写作风格，如：专业但不晦涩，像跟朋友聊天")
     # 禁忌 — 绝对不能出现的词或话题
     taboo: Mapped[str] = mapped_column(Text, default="", comment="禁忌词/话题，一行一个")
+    # 视觉风格矩阵 — JSON: {"干货教程型": {"style":"...","bg":"#..","main":"#.."}, ...}
+    style_matrix: Mapped[str] = mapped_column(Text, default="", comment="视觉风格矩阵JSON")
     # 是否启用（只能有一个启用的profile）
     is_active: Mapped[bool] = mapped_column(default=True, comment="是否为当前启用的配置")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)

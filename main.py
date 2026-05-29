@@ -51,7 +51,7 @@ async def page_analytics():   return _read_html("dashboard.html")
 @app.get("/xhs/page", response_class=HTMLResponse)
 async def page_xhs():         return _read_html("xhs.html")
 @app.get("/obsidian/page", response_class=HTMLResponse)
-async def page_obsidian():    return _read_html("obsidian.html")
+async def page_obsidian():    return _read_html("materials.html")  # 合并到知识库页面
 
 
 # ── 注册 API 路由 ──

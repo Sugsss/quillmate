@@ -51,6 +51,7 @@ async def get_profile(db: AsyncSession = Depends(get_db)):
         "audience": profile.audience,
         "tone": profile.tone,
         "taboo": profile.taboo,
+        "style_matrix": profile.style_matrix or "",
         "is_active": profile.is_active,
     }
 
@@ -71,6 +72,7 @@ async def save_profile(data: dict, db: AsyncSession = Depends(get_db)):
     audience = data.get("audience", "")
     tone = data.get("tone", "")
     taboo = data.get("taboo", "")
+    style_matrix = data.get("style_matrix", "")
     profile_id = data.get("id", "")
 
     if profile_id:
@@ -83,6 +85,7 @@ async def save_profile(data: dict, db: AsyncSession = Depends(get_db)):
             profile.audience = audience
             profile.tone = tone
             profile.taboo = taboo
+            profile.style_matrix = style_matrix
             profile.is_active = True
         else:
             raise HTTPException(status_code=404, detail="人设不存在")
@@ -92,6 +95,7 @@ async def save_profile(data: dict, db: AsyncSession = Depends(get_db)):
             audience=audience,
             tone=tone,
             taboo=taboo,
+            style_matrix=style_matrix,
             is_active=True,
         )
         db.add(profile)
