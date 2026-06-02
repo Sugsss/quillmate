@@ -25,5 +25,10 @@ venv/
 # 测试文件
 test_*.py
 
+# AI 审查文档（临时）
+chatgpt*.md
+quillmate_*.md
+
 # 依赖
 node_modules/
+.reasonix/truncated-results/
