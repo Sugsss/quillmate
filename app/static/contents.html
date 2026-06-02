@@ -167,8 +167,9 @@ async function loadTopics(){
 
 async function loadContentList(){
     try {
-        var r = await fetch('/contents/list');
-        var data = await r.json();
+        var r = await fetch('/contents/list?size=0');
+        var raw = await r.json();
+        var data = raw.items || raw;
         $('historyCount').textContent = '('+data.length+')';
         var container = $('contentList');
         if(!data.length){ container.innerHTML = '<div style="font-size:12px;color:#bbb;padding:10px;">暂无历史文案</div>'; return; }

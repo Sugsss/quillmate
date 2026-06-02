@@ -3,50 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>小红书AI内容管理系统</title>
+<title>QuillMate</title>
 <style>
-:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #eee; --shadow: 0 2px 12px rgba(0,0,0,0.08); --green: #38a169; --blue: #3182ce; }
+:root { --primary: #ff2442; --bg: #fafafa; --card: #fff; --text: #333; --border: #e8e8e8; --shadow: 0 1px 4px rgba(0,0,0,0.04); --green: #38a169; --blue: #3182ce; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 .header { background:linear-gradient(135deg, #ff2442, #ff6b81); color:#fff; padding:14px 20px; text-align:center; }
 .header h1 { font-size:17px; font-weight:700; line-height:1.4; }
 .nav { display:flex; gap:3px; justify-content:center; padding:6px 8px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
 .nav a { text-decoration:none; color:var(--text); padding:3px 9px; border-radius:11px; font-size:11px; border:1px solid var(--border); white-space:nowrap; transition:all .15s; }
-.nav a:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
-.nav a.active { background:var(--primary); color:#fff; }
-.container { max-width:960px; margin:0 auto; padding:24px 16px; }
+.nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.container { max-width:860px; margin:0 auto; padding:24px 16px; }
 
-/* 流程步骤 */
-.flow { display:flex; gap:12px; margin-bottom:28px; flex-wrap:wrap; justify-content:center; }
-.flow-step { flex:1; min-width:100px; max-width:130px; background:var(--card); border-radius:14px; padding:20px 14px; text-align:center; box-shadow:var(--shadow); text-decoration:none; color:var(--text); transition:all .2s; position:relative; }
-.flow-step:hover { transform:translateY(-3px); box-shadow:0 6px 20px rgba(0,0,0,0.12); }
-.flow-step .icon { font-size:32px; margin-bottom:8px; display:block; }
-.flow-step .label { font-size:12px; font-weight:600; }
-.flow-step .arrow { position:absolute; right:-8px; top:50%; transform:translateY(-50%); color:#ccc; font-size:18px; }
-.flow-step:last-child .arrow { display:none; }
+/* 今日行动 */
+.today-panel { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:20px; }
+@media(max-width:600px){.today-panel{grid-template-columns:1fr;}}
+.today-main { background:var(--card); border-radius:16px; padding:24px; box-shadow:var(--shadow); }
+.today-main h2 { font-size:16px; margin-bottom:16px; }
+.action-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #f5f5f5; cursor:pointer; transition:.1s; border-radius:8px; padding:10px; margin:0 -10px; }
+.action-item:hover { background:#fafafa; }
+.action-item .icon { font-size:24px; width:36px; text-align:center; flex-shrink:0; }
+.action-item .info { flex:1; min-width:0; }
+.action-item .info .title { font-size:14px; font-weight:600; }
+.action-item .info .sub { font-size:11px; color:#999; margin-top:2px; }
+.action-item .arrow { color:#ccc; font-size:14px; }
 
-/* 概览卡片 */
-.overview { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:14px; margin-bottom:24px; }
-.ov-card { background:var(--card); border-radius:12px; padding:18px; box-shadow:var(--shadow); }
-.ov-card .num { font-size:28px; font-weight:700; }
-.ov-card .num.red { color:var(--primary); }
-.ov-card .num.green { color:var(--green); }
-.ov-card .num.blue { color:var(--blue); }
-.ov-card .lbl { font-size:12px; color:#999; margin-top:4px; }
+.today-side { display:flex; flex-direction:column; gap:12px; }
+.stat-mini { background:var(--card); border-radius:14px; padding:16px; box-shadow:var(--shadow); text-align:center; }
+.stat-mini .num { font-size:24px; font-weight:800; color:var(--primary); }
+.stat-mini .lbl { font-size:11px; color:#999; margin-top:2px; }
 
-/* 快捷操作 */
-.quick-actions { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px; margin-bottom:24px; }
-.qa-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:var(--shadow); text-decoration:none; color:var(--text); transition:all .2s; display:flex; align-items:center; gap:14px; }
-.qa-card:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,0.1); }
-.qa-card .qa-icon { font-size:30px; }
-.qa-card .qa-title { font-size:14px; font-weight:600; }
-.qa-card .qa-desc { font-size:11px; color:#999; margin-top:2px; }
+.quick-bar { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.quick-btn { flex:1; min-width:140px; background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow); text-decoration:none; color:var(--text); display:flex; align-items:center; gap:10px; transition:.15s; }
+.quick-btn:hover { transform:translateY(-2px); box-shadow:0 3px 10px rgba(0,0,0,0.08); }
+.quick-btn .qicon { font-size:22px; }
+.quick-btn .qtitle { font-size:13px; font-weight:600; }
+
+.flow { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:20px; }
+.flow-step { background:var(--card); border-radius:10px; padding:10px 14px; box-shadow:var(--shadow); text-decoration:none; color:var(--text); font-size:11px; transition:.15s; }
+.flow-step:hover { background:var(--primary); color:#fff; }
+
+.empty-note { text-align:center; padding:20px; color:#bbb; font-size:12px; }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 22px; border-radius:8px; font-size:13px; z-index:2000; opacity:0; transition:opacity .3s; pointer-events:none; }
+.toast.show { opacity:1; }
 </style>
 </head>
 <body>
-<div class="header">
-    <h1>📕 QuillMate <span style="font-size:11px;font-weight:400;opacity:0.8;margin-left:8px;">素材库 → AI选题 → 文案生成 → 发布追踪</span></h1>
-</div>
+<div class="header"><h1>📕 QuillMate <span style="font-size:11px;font-weight:400;opacity:0.8;margin-left:8px;">素材库 → AI选题 → 文案生成 → 发布追踪</span></h1></div>
 <div class="nav">
     <a href="/" class="active">🏠 首页</a>
     <a href="/materials/page">💎 知识库</a>
@@ -58,80 +61,156 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <a href="/analytics/page">📊 看板</a>
     <a href="/xhs/page">🔗 XHS</a>
 </div>
-
 <div class="container">
-    <!-- 工作流程 -->
-    <div class="flow">
-        <a href="/materials/page" class="flow-step">
-            <span class="icon">📚</span><span class="label">① 上传素材</span><span class="arrow">→</span>
-        </a>
-        <a href="/brand/page" class="flow-step">
-            <span class="icon">👤</span><span class="label">② 配置人设</span><span class="arrow">→</span>
-        </a>
-        <a href="/topics/page" class="flow-step">
-            <span class="icon">💡</span><span class="label">③ AI选题</span><span class="arrow">→</span>
-        </a>
-        <a href="/contents/page" class="flow-step">
-            <span class="icon">✍️</span><span class="label">④ 生成文案</span><span class="arrow">→</span>
-        </a>
-        <a href="/publishes/page" class="flow-step">
-            <span class="icon">📤</span><span class="label">⑤ 发布追踪</span><span class="arrow">→</span>
-        </a>
-        <a href="/analytics/page" class="flow-step">
-            <span class="icon">📊</span><span class="label">⑥ 数据分析</span>
-        </a>
-    </div>
-
-    <!-- 数据概览 -->
-    <div class="overview">
-        <div class="ov-card"><div class="num red" id="countMaterials">-</div><div class="lbl">素材总数</div></div>
-        <div class="ov-card"><div class="num red" id="countTopics">-</div><div class="lbl">选题数量</div></div>
-        <div class="ov-card"><div class="num red" id="countContents">-</div><div class="lbl">已生成文案</div></div>
-        <div class="ov-card"><div class="num blue" id="countPublishes">-</div><div class="lbl">发布数量</div></div>
-        <div class="ov-card"><div class="num green" id="countViews">-</div><div class="lbl">总浏览量</div></div>
+    <!-- 今日行动面板 -->
+    <div class="today-panel">
+        <div class="today-main">
+            <h2>📋 今日行动</h2>
+            <div id="actionList">
+                <div class="empty-note">加载中...</div>
+            </div>
+        </div>
+        <div class="today-side">
+            <div class="stat-mini">
+                <div class="num" id="kpiTopics">-</div>
+                <div class="lbl">待写选题</div>
+            </div>
+            <div class="stat-mini">
+                <div class="num" id="kpiViews">-</div>
+                <div class="lbl">昨日浏览</div>
+            </div>
+            <div class="stat-mini">
+                <div class="num" id="kpiMats">-</div>
+                <div class="lbl">可用素材</div>
+            </div>
+        </div>
     </div>
 
     <!-- 快捷入口 -->
-    <div class="quick-actions">
-        <a href="/topics/page" class="qa-card">
-            <span class="qa-icon">🤖</span>
-            <div><div class="qa-title">AI推荐选题</div><div class="qa-desc">基于素材库智能推荐今日选题</div></div>
+    <div class="quick-bar">
+        <a href="/topics/page" class="quick-btn">
+            <span class="qicon">🤖</span>
+            <div><div class="qtitle">AI 推荐选题</div></div>
         </a>
-        <a href="/contents/page" class="qa-card">
-            <span class="qa-icon">🎨</span>
-            <div><div class="qa-title">生成小红书文案</div><div class="qa-desc">双专家引擎，爆款标题+人味正文</div></div>
+        <a href="/contents/page" class="quick-btn">
+            <span class="qicon">✍️</span>
+            <div><div class="qtitle">生成文案</div></div>
         </a>
-        <a href="/publishes/page" class="qa-card">
-            <span class="qa-icon">📋</span>
-            <div><div class="qa-title">导出发布</div><div class="qa-desc">一键复制文案，追踪发布效果</div></div>
+        <a href="/materials/page" class="quick-btn">
+            <span class="qicon">💎</span>
+            <div><div class="qtitle">知识库</div></div>
         </a>
-        <a href="/analytics/page" class="qa-card">
-            <span class="qa-icon">📈</span>
-            <div><div class="qa-title">数据看板</div><div class="qa-desc">浏览量/点赞/收藏/互动率总览</div></div>
+        <a href="/analytics/page" class="quick-btn">
+            <span class="qicon">📊</span>
+            <div><div class="qtitle">数据看板</div></div>
         </a>
+    </div>
+
+    <!-- 工作流提示 -->
+    <div class="flow">
+        <a href="/materials/page" class="flow-step">① 知识库</a>
+        <span style="color:#ccc;line-height:36px;">→</span>
+        <a href="/topics/page" class="flow-step">② AI选题</a>
+        <span style="color:#ccc;line-height:36px;">→</span>
+        <a href="/contents/page" class="flow-step">③ 生成文案</a>
+        <span style="color:#ccc;line-height:36px;">→</span>
+        <a href="/publishes/page" class="flow-step">④ 发布追踪</a>
     </div>
 </div>
 
 <script>
-async function loadOverview() {
+async function init() {
     try {
-        const [mRes, tRes, aRes] = await Promise.all([
-            fetch('/materials/list'),
-            fetch('/topics/list'),
-            fetch('/analytics/dashboard'),
-        ]);
-        const materials = await mRes.json();
-        const topics = await tRes.json();
-        const analytics = await aRes.json();
+        var tRes = await fetch('/topics/list?size=0');
+        var tRaw = await tRes.json();
+        var topics = tRaw.items || tRaw;
+        var drafts = topics.filter(function(t){ return t.status === 'draft'; });
+        var generated = topics.filter(function(t){ return t.status === 'generated'; });
+        var mRes = await fetch('/materials/list?size=0');
+        var mRaw = await mRes.json();
+        var mats = mRaw.items || mRaw;
 
-        document.getElementById('countMaterials').textContent = materials.length;
-        document.getElementById('countTopics').textContent = topics.length;
-        document.getElementById('countContents').textContent = topics.filter(t => t.status === 'generated').length;
-        document.getElementById('countPublishes').textContent = analytics.total_publishes;
-        document.getElementById('countViews').textContent = analytics.total_views.toLocaleString();
-    } catch (err) { console.error('首页概览加载失败:', err); }
+        document.getElementById('kpiTopics').textContent = drafts.length;
+        document.getElementById('kpiMats').textContent = mats.length;
+
+        // 今日行动列表
+        var list = document.getElementById('actionList');
+        var html = '';
+
+        // 行动1: 待写选题
+        if (drafts.length > 0) {
+            html += '<a href="/topics/page" style="text-decoration:none;color:inherit;">';
+            html += '<div class="action-item">';
+            html += '<div class="icon">💡</div>';
+            html += '<div class="info"><div class="title">' + drafts.length + ' 个选题待生成</div>';
+            html += '<div class="sub">最新：' + esc(drafts[0].title) + '</div></div>';
+            html += '<div class="arrow">→</div></div></a>';
+        } else if (generated.length > 0) {
+            html += '<a href="/contents/page" style="text-decoration:none;color:inherit;">';
+            html += '<div class="action-item">';
+            html += '<div class="icon">✍️</div>';
+            html += '<div class="info"><div class="title">' + generated.length + ' 篇文案已生成</div>';
+            html += '<div class="sub">去文案管理查看和发布</div></div>';
+            html += '<div class="arrow">→</div></div></a>';
+        } else {
+            html += '<a href="/topics/page" style="text-decoration:none;color:inherit;">';
+            html += '<div class="action-item">';
+            html += '<div class="icon">🤖</div>';
+            html += '<div class="info"><div class="title">开始 AI 推荐选题</div>';
+            html += '<div class="sub">基于你的素材库，AI 帮你规划今天写什么</div></div>';
+            html += '<div class="arrow">→</div></div></a>';
+        }
+
+        // 行动2: 素材库
+        if (mats.length === 0) {
+            html += '<a href="/materials/page" style="text-decoration:none;color:inherit;">';
+            html += '<div class="action-item">';
+            html += '<div class="icon">📁</div>';
+            html += '<div class="info"><div class="title">上传你的第一篇素材</div>';
+            html += '<div class="sub">PDF、文档、Obsidian 笔记都可以</div></div>';
+            html += '<div class="arrow">→</div></div></a>';
+        } else {
+            html += '<a href="/materials/page" style="text-decoration:none;color:inherit;">';
+            html += '<div class="action-item">';
+            html += '<div class="icon">📚</div>';
+            html += '<div class="info"><div class="title">管理 ' + mats.length + ' 条素材</div>';
+            html += '<div class="sub">搜索、结构化、标记使用状态</div></div>';
+            html += '<div class="arrow">→</div></div></a>';
+        }
+
+        // 行动3: 灵感捕获
+        html += '<div class="action-item" onclick="quickCapture()" style="cursor:pointer;">';
+        html += '<div class="icon">💭</div>';
+        html += '<div class="info"><div class="title">快速记录一个想法</div>';
+        html += '<div class="sub">打字/语音，几秒钟的事</div></div>';
+        html += '<div class="arrow">→</div></div>';
+
+        list.innerHTML = html;
+    } catch(e) {}
+
+    // 数据亮点
+    try {
+        var dashRes = await fetch('/analytics/dashboard');
+        var dash = await dashRes.json();
+        document.getElementById('kpiViews').textContent = dash.total_views.toLocaleString();
+    } catch(e) {}
 }
-loadOverview();
+
+function quickCapture() {
+    var idea = prompt('💭 记录一个想法（一句话即可）：');
+    if (!idea || !idea.trim()) return;
+    fetch('/topics/create', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({title: idea.trim(), reason: '首页快速捕获', source:'manual'})
+    }).then(function(r){ return r.json(); }).then(function(){
+        alert('✅ 已保存为选题，稍后可以去选题页细化和生成');
+        location.reload();
+    });
+}
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+init();
 </script>
 </body>
 </html>

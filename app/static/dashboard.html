@@ -17,7 +17,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 /* KPI 卡片 - 借鉴 data-pro 风格 */
 .kpi-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:12px; margin-bottom:20px; }
-.kpi-card { background:var(--card); border-radius:14px; padding:20px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.kpi-card { background:var(--card); border-radius:14px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,0.04); position:relative; overflow:hidden; }
 .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
 .kpi-card.views::before { background:var(--primary); }
 .kpi-card.likes::before { background:var(--green); }
@@ -29,7 +29,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .kpi-card .kpi-sub { font-size:10px; color:#bbb; margin-top:2px; }
 
 /* 排行表格 - 借鉴 Financial Times 风格 */
-.card { background:var(--card); border-radius:14px; padding:20px; margin-bottom:16px; box-shadow:var(--shadow); }
+.card { background:var(--card); border-radius:14px; padding:20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
 .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
 .card-header h2 { font-size:15px; }
 table { width:100%; border-collapse:collapse; font-size:13px; }

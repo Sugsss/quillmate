@@ -14,7 +14,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .nav a { text-decoration:none; color:var(--text); padding:3px 9px; border-radius:11px; font-size:11px; border:1px solid var(--border); white-space:nowrap; transition:all .15s; }
 .nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
 .container { max-width:900px; margin:0 auto; padding:20px 16px; }
-.card { background:var(--card); border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:var(--shadow); }
+.card { background:var(--card); border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
 .card h2 { font-size:16px; margin-bottom:12px; display:flex; align-items:center; gap:8px; justify-content:space-between; }
 .btn { padding:8px 18px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; }
 .btn-primary { background:var(--primary); color:#fff; }
@@ -114,8 +114,9 @@ let selectedIds = new Set();
 
 async function loadTopics() {
     try {
-        const res = await fetch('/topics/list');
-        const data = await res.json();
+        var res = await fetch('/topics/list?size=0');
+        var raw = await res.json();
+        var data = raw.items || raw;
         document.getElementById('topicCount').textContent = data.length;
         const container = document.getElementById('topicList');
         if (data.length === 0) {
@@ -131,6 +132,7 @@ async function loadTopics() {
             html += `<div class="topic-card${sel}" onclick="toggleTopic(this, '${t.id}')" data-id="${t.id}">
                 <div class="topic-title">${esc(t.title)} ${srcBadge} ${statusBadge}</div>
                 <div class="topic-reason">${esc(t.reason)}</div>
+                ${t.why_today ? '<div style="font-size:11px;color:var(--primary);margin-bottom:4px;">📌 ' + esc(t.why_today) + '</div>' : ''}
                 <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:10px;color:#888;margin-bottom:4px;">
                     ${t.type ? '<span>'+(typeEmoji[t.type]||'')+' '+esc(t.type)+'</span>' : ''}
                     ${t.workload ? '<span>工作量 '+esc(t.workload)+'</span>' : ''}

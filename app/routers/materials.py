@@ -8,7 +8,7 @@ from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.database import get_db
 from app.models.materials import Material
@@ -90,24 +90,33 @@ async def upload_material(
 
 
 @router.get("/list")
-async def list_materials(db: AsyncSession = Depends(get_db)):
-    """素材列表 — 返回所有素材的摘要信息（不含全文）"""
-    result = await db.execute(
-        select(Material).order_by(Material.created_at.desc())
-    )
+async def list_materials(page: int = 1, size: int = 20, db: AsyncSession = Depends(get_db)):
+    """素材列表 — 分页返回，size=0 返回全部"""
+    query = select(Material).order_by(Material.created_at.desc())
+    
+    # 先查总数
+    count_query = select(func.count()).select_from(Material)
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+    
+    if size > 0:
+        query = query.offset((page - 1) * size).limit(size)
+    
+    result = await db.execute(query)
     materials = result.scalars().all()
-    return [
-        {
-            "id": m.id,
-            "title": m.title,
-            "file_name": m.file_name,
-            "file_type": m.file_type,
-            "word_count": m.word_count,
-            "created_at": m.created_at.isoformat(),
-            "preview": m.content[:200],
-        }
-        for m in materials
-    ]
+    
+    return {
+        "items": [
+            {
+                "id": m.id, "title": m.title, "file_name": m.file_name,
+                "file_type": m.file_type, "word_count": m.word_count,
+                "created_at": m.created_at.isoformat(), "preview": m.content[:200],
+            }
+            for m in materials
+        ],
+        "total": total, "page": page, "size": size if size > 0 else total,
+        "pages": (total + size - 1) // size if size > 0 else 1,
+    }
 
 
 @router.get("/search")

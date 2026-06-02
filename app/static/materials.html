@@ -14,7 +14,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .nav a { text-decoration:none; color:var(--text); padding:3px 9px; border-radius:11px; font-size:11px; border:1px solid var(--border); white-space:nowrap; transition:all .15s; }
 .nav a:hover, .nav a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
 .container { max-width:1000px; margin:0 auto; padding:20px 16px; }
-.card { background:var(--card); border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:var(--shadow); }
+.card { background:var(--card); border-radius:14px; padding:20px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
 .btn { padding:7px 16px; border-radius:8px; border:none; cursor:pointer; font-size:12px; font-weight:600; }
 .btn-purple { background:var(--primary); color:#fff; }
 .btn-outline { background:none; border:1px solid #ddd; color:#666; font-size:11px; padding:5px 10px; }
@@ -278,7 +278,7 @@ const PAGE_SIZE = 20;
 let matPage = 0;
 
 async function loadMatList() {
-    try { const r = await fetch('/materials/list'); allMats = await r.json(); matPage = 0; renderMatList(); }
+    try { var r = await fetch('/materials/list?size=0'); var d = await r.json(); allMats = d.items || d; matPage = 0; renderMatList(); }
     catch(e) { document.getElementById('matList').innerHTML = '<div style="color:#e53e3e;">加载失败</div>'; }
 }
 

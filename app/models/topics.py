@@ -24,5 +24,6 @@ class Topic(Base):
     workload: Mapped[str] = mapped_column(String(10), default="", comment="工作量评估 ⭐~⭐⭐⭐")
     advantage: Mapped[str] = mapped_column(Text, default="", comment="选题优势")
     risk: Mapped[str] = mapped_column(Text, default="", comment="潜在风险")
+    why_today: Mapped[str] = mapped_column(Text, default="", comment="今天为什么值得写")
     status: Mapped[str] = mapped_column(String(20), default="draft", comment="draft / selected / generated / archived")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)

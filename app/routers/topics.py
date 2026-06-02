@@ -6,7 +6,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.database import get_db
 from app.models.materials import Material
@@ -84,6 +84,7 @@ async def suggest_topics(db: AsyncSession = Depends(get_db)):
             workload=t.get("workload", ""),
             advantage=t.get("advantage", ""),
             risk=t.get("risk", ""),
+            why_today=t.get("why_today", ""),
             status="draft",
         )
         db.add(topic)
@@ -102,6 +103,7 @@ async def suggest_topics(db: AsyncSession = Depends(get_db)):
                 "workload": t.workload,
                 "advantage": t.advantage,
                 "risk": t.risk,
+                "why_today": t.why_today,
                 "audience": t.audience,
                 "tone": t.tone,
             }
@@ -129,28 +131,37 @@ async def create_topic(data: dict, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/list")
-async def list_topics(status: str = "", db: AsyncSession = Depends(get_db)):
-    """选题列表"""
+async def list_topics(status: str = "", page: int = 1, size: int = 20, db: AsyncSession = Depends(get_db)):
+    """选题列表 — 分页，size=0 全部"""
     query = select(Topic).order_by(Topic.created_at.desc())
     if status:
         query = query.where(Topic.status == status)
+
+    count_query = select(func.count()).select_from(Topic)
+    if status:
+        count_query = count_query.where(Topic.status == status)
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    if size > 0:
+        query = query.offset((page - 1) * size).limit(size)
+
     result = await db.execute(query)
     topics = result.scalars().all()
-    return [
-        {
-            "id": t.id,
-            "title": t.title,
-            "reason": t.reason,
-            "type": t.topic_type,
-            "workload": t.workload,
-            "advantage": t.advantage,
-            "risk": t.risk,
-            "source": t.source,
-            "status": t.status,
-            "created_at": t.created_at.isoformat(),
-        }
-        for t in topics
-    ]
+    return {
+        "items": [
+            {
+                "id": t.id, "title": t.title, "reason": t.reason,
+                "type": t.topic_type, "workload": t.workload,
+                "advantage": t.advantage, "risk": t.risk, "why_today": t.why_today,
+                "source": t.source, "status": t.status,
+                "created_at": t.created_at.isoformat(),
+            }
+            for t in topics
+        ],
+        "total": total, "page": page, "size": size if size > 0 else total,
+        "pages": (total + size - 1) // size if size > 0 else 1,
+    }
 
 
 @router.delete("/{topic_id}")

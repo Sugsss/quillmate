@@ -6,7 +6,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.database import get_db
 from app.models.topics import Topic
@@ -26,25 +26,32 @@ router = APIRouter(prefix="/contents", tags=["内容生成"])
 
 
 @router.get("/list")
-async def list_contents(db: AsyncSession = Depends(get_db)):
-    """已生成内容列表 — 返回所有内容摘要"""
-    result = await db.execute(
-        select(Content).order_by(Content.created_at.desc())
-    )
+async def list_contents(page: int = 1, size: int = 20, db: AsyncSession = Depends(get_db)):
+    """已生成内容列表 — 分页，size=0 全部"""
+    query = select(Content).order_by(Content.created_at.desc())
+
+    count_query = select(func.count()).select_from(Content)
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    if size > 0:
+        query = query.offset((page - 1) * size).limit(size)
+
+    result = await db.execute(query)
     contents = result.scalars().all()
-    return [
-        {
-            "id": c.id,
-            "topic_id": c.topic_id,
-            "platform": c.platform,
-            "title": c.title,
-            "body_preview": c.body[:150],
-            "tags": c.tags.split() if c.tags else [],
-            "version": c.version,
-            "created_at": c.created_at.isoformat(),
-        }
-        for c in contents
-    ]
+    return {
+        "items": [
+            {
+                "id": c.id, "topic_id": c.topic_id, "platform": c.platform,
+                "title": c.title, "body_preview": c.body[:150],
+                "tags": c.tags.split() if c.tags else [],
+                "version": c.version, "created_at": c.created_at.isoformat(),
+            }
+            for c in contents
+        ],
+        "total": total, "page": page, "size": size if size > 0 else total,
+        "pages": (total + size - 1) // size if size > 0 else 1,
+    }
 
 
 @router.get("/{content_id}")
@@ -174,7 +181,7 @@ async def generate_content(data: dict, db: AsyncSession = Depends(get_db)):
         style_hint = f"\n\n## 品牌视觉风格（优先使用）\n风格：{matched_style.get('style','')}\n底色：{matched_style.get('bg','')}\n主色：{matched_style.get('main','')}"
         sys_prompt += style_hint
     if custom_creation_prompt.strip():
-        sys_prompt = custom_creation_prompt.strip() + "\n\n## 输出格式\n严格返回 JSON，不要 markdown 代码块：\n{\"title\":\"标题\",\"body\":\"正文\",\"tags\":[\"标签\"],\"image_suggestion\":\"AI生图提示词，Midjourney/Stable Diffusion格式\"",\"image_design\":{\"style\":\"自由发挥\",\"bg_color\":\"#色\",\"main_color\":\"#色\",\"layout\":\"排版\",\"typography\":\"字体\"}}"
+        sys_prompt = custom_creation_prompt.strip() + '\n\n## 输出格式\n严格返回 JSON：\n{"title":"标题","body":"正文","tags":["标签"],"image_suggestion":"AI生图提示词","image_design":{"style":"风格","bg_color":"#色","main_color":"#色","layout":"排版","typography":"字体"}}'
 
     try:
         content_raw = await call_llm(sys_prompt, user_prompt, temperature=0.85, max_tokens=3000)
